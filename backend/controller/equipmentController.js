@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const showEquipments = async (req,res) => {
     try{
       const equipments = await pool.query("SELECT * FROM equipments");
-      res.status(200).json({equipments: equipments.rows});
+      res.status(200).json(equipments.rows);
     }
     catch (error) {
       res.status(400).json({ error: error.message });
