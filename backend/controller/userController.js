@@ -49,7 +49,7 @@ const checkValidity = async (req) => {
 
   const salt = await bcrypt.genSalt(10);
   const hashed_password = await bcrypt.hash(password, salt);
-  console.log(hashed_password);
+  //console.log(hashed_password);
 
   let newUser = await pool.query(
     "INSERT INTO users (username, first_name, last_name, email, password, role, phone_no) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
