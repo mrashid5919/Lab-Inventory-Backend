@@ -1,0 +1,24 @@
+require("dotenv").config();
+
+//require
+const express = require("express");
+
+//start the app
+
+const userRoute = require("./routes/user");
+const equipmentRoute=require("./routes/equipment");
+
+const app = express();
+
+app.use(express.json());
+
+app.use("/api/user", userRoute);
+app.use("/api/equipments",equipmentRoute);
+
+app.get("/home", (req, res) => {
+  res.send("hello world");
+});
+
+app.listen(5000, () => {
+  console.log("server is running on port 5000!!!");
+});
