@@ -129,6 +129,19 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
+-- Name: users_in_locations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users_in_locations (
+    user_id integer NOT NULL,
+    location_id integer NOT NULL,
+    role character varying(32)
+);
+
+
+ALTER TABLE public.users_in_locations OWNER TO postgres;
+
+--
 -- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -186,6 +199,7 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 --
 
 COPY public.equipments_in_locations (equipment_id, location_id, quantity, loan) FROM stdin;
+1	1	5	2
 \.
 
 
@@ -194,6 +208,7 @@ COPY public.equipments_in_locations (equipment_id, location_id, quantity, loan) 
 --
 
 COPY public.locations (location_id, location_name, room_no) FROM stdin;
+1	Inventory1	101
 \.
 
 
@@ -205,6 +220,17 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 1	1905091	Sadia	Tabassum	1905091@ugrad.cse.buet.ac.bd	$2b$10$ZZfW8Mk4rY2cWaDcpnMpWuaWCdba9rSprUdBdHGlI4o30.Ayh0LK.	Student	0170000000
 2	1905099	Aline	Zaman	1905099@ugrad.cse.buet.ac.bd	$2b$10$I5sYZ1cNt6.AnQMy3meQtuXnat.HzsrhsqAaBK74yOuNAbjP1wEOG	Student	01803200049
 3	19050103	Mayesha	Rashid	1905103@ugrad.cse.buet.ac.bd	$2b$10$jZAmLfmRfAJjT8Ep.YSSXuI0GQful/CmviiG24il.HL84oO3d5Cze	Student	0129037502
+4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	inventory manager	293733373
+5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	inventory manager	0189459013
+\.
+
+
+--
+-- Data for Name: users_in_locations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
+4	1	inventory manager
 \.
 
 
@@ -226,7 +252,7 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 1, false);
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 3, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 5, true);
 
 
 --
@@ -262,6 +288,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: users_in_locations users_in_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users_in_locations
+    ADD CONSTRAINT users_in_locations_pkey PRIMARY KEY (user_id, location_id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -291,6 +325,22 @@ ALTER TABLE ONLY public.equipments_in_locations
 
 ALTER TABLE ONLY public.equipments_in_locations
     ADD CONSTRAINT equipments_in_locations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(location_id);
+
+
+--
+-- Name: users_in_locations users_in_locations_location_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users_in_locations
+    ADD CONSTRAINT users_in_locations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(location_id);
+
+
+--
+-- Name: users_in_locations users_in_locations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users_in_locations
+    ADD CONSTRAINT users_in_locations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
 
 --
