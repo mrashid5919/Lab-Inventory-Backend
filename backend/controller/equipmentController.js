@@ -32,4 +32,18 @@ const showEquipments = async (req,res) => {
     }
   };
 
-  module.exports = { showEquipments , showEquipmentsManager};
+  const addNewEquipment = async (req,res) => {
+    const {name,quantity,category,cost,description,permit,image}=req.body;
+    if(!name || !quantity || !category || !cost || !description || !permit){
+      return res.status(400).json({error:"All fields are required"});
+    }
+    let NewEquipment=await pool.query("INSERT INTO equipments (equipment_name, type, cost, descript, borrowed, available, demand, permit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",[name,category,cost,description,0,quantity,1,permit]);
+    try{
+      res.status(200).json(NewEquipment.rows[0]);
+    }
+    catch(error){
+      res.status(400).json({error:error.message});
+    }
+  };
+
+  module.exports = { showEquipments , showEquipmentsManager, addNewEquipment};
