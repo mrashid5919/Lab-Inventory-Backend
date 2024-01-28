@@ -37,7 +37,9 @@ const showEquipments = async (req,res) => {
     if(!name || !quantity || !category || !cost || !description || !permit){
       return res.status(400).json({error:"All fields are required"});
     }
+    quantity=parseInt(quantity,10);
     let NewEquipment=await pool.query("INSERT INTO equipments (equipment_name, type, cost, descript, borrowed, available, demand, permit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",[name,category,cost,description,0,quantity,1,permit]);
+    await pool.query("INSERT INTO equipments_in_locations (equipment_id, location_id, quantity, loan) VALUES ($1, $2, $3, $4)",[NewEquipment.rows[0].equipment_id,1,quantity,0]);
     try{
       res.status(200).json(NewEquipment.rows[0]);
     }

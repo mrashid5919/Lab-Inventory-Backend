@@ -15,7 +15,7 @@ const updateStorage=async (req,res)=>{
       }
       const equipmentID=equipmentIDquery.rows[0].equipment_id;
 
-    const username=req.body.username;
+    const username= req.params.username;
     const location_IDquery=await pool.query(
         "SELECT location_id FROM users_in_locations WHERE user_id = (SELECT user_id FROM users WHERE username = $1)",
         [username]
@@ -25,10 +25,17 @@ const updateStorage=async (req,res)=>{
         throw Error("Wrong username");
     }
     const location_ID=location_IDquery.rows[0].location_id;
-    const quantity=req.body.quantity;
-    try{  
-      await pool.query("SELECT update_storage($1,$2,$3)",[equipmentID,location_ID,quantity]);
-      res.status(200).json({msg:"Update successfully"});
+    const quant=parseInt(req.body.quantity,10);
+    try{
+      equip=await pool.query("SELECT * FROM equipments WHERE equipment_id = $1",[equipmentID]);
+      //console.log(equip.rows[0]);
+      await pool.query("UPDATE equipments SET available = $1 WHERE equipment_id = $2",[equip.rows[0].available+quant,equipmentID]);
+      const updatedEquipment=await pool.query("SELECT * FROM equipments WHERE equipment_id = $1",[equipmentID]);
+      equip=await pool.query("SELECT * FROM equipments_in_locations WHERE equipment_id = $1",[equipmentID]);
+      await pool.query("UPDATE equipments_in_locations SET quantity = $1 WHERE equipment_id = $2 AND location_id = $3",[equip.rows[0].quantity+quant,equipmentID,location_ID]);  
+      //const updatedEquipment=await pool.query("SELECT update_storage($1,$2,$3)",[equipmentID,location_ID,quantity]);
+      //console.log(updatedEquipment.rows[0]);
+      res.status(200).json(updatedEquipment.rows[0]);
     }catch(error){
       res.status(400).json({error:error.message});
     }

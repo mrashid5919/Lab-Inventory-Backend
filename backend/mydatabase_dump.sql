@@ -16,26 +16,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
---
--- Name: update_storage(integer, integer, numeric); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.update_storage(equipmentid integer, locationid integer, quant numeric) RETURNS void
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-  UPDATE EQUIPMENTS_IN_LOCATIONS
-  SET QUANTITY = QUANTITY+Quant
-  WHERE EQUIPMENT_ID = EquipmentID AND LOCATION_ID = LocationID;
-  UPDATE EQUIPMENTS
-  SET AVAILABLE = AVAILABLE+Quant
-  WHERE EQUIPMENT_ID = EquipmentID;
-END;
-$$;
-
-
-ALTER FUNCTION public.update_storage(equipmentid integer, locationid integer, quant numeric) OWNER TO postgres;
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -58,6 +38,35 @@ CREATE TABLE public.equipments (
 
 
 ALTER TABLE public.equipments OWNER TO postgres;
+
+--
+-- Name: update_storage(integer, integer, numeric); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_storage(p_equipment_id integer, p_location_id integer, p_quantity numeric) RETURNS public.equipments
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    updated_equipment_row EQUIPMENTS;
+BEGIN
+    -- Update quantity in EQUIPMENTS_IN_LOCATIONS
+    UPDATE EQUIPMENTS_IN_LOCATIONS
+    SET QUANTITY = QUANTITY + p_quantity
+    WHERE EQUIPMENT_ID = p_equipment_id AND LOCATION_ID = p_location_id;
+
+    -- Update available quantity in EQUIPMENTS and capture the updated row
+    UPDATE EQUIPMENTS
+    SET AVAILABLE = AVAILABLE + p_quantity
+    WHERE EQUIPMENT_ID = p_equipment_id
+    RETURNING * INTO updated_equipment_row;
+
+    -- Return the updated equipment row
+    RETURN updated_equipment_row;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_storage(p_equipment_id integer, p_location_id integer, p_quantity numeric) OWNER TO postgres;
 
 --
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -88,7 +97,7 @@ ALTER SEQUENCE public.equipments_equipment_id_seq OWNED BY public.equipments.equ
 CREATE TABLE public.equipments_in_locations (
     equipment_id integer NOT NULL,
     location_id integer NOT NULL,
-    quantity numeric,
+    quantity integer,
     loan numeric
 );
 
@@ -210,8 +219,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit) FROM stdin;
 2	Arduino	Hardware	100	Microcontroller	2	15	2	2
-3	AtMega32	Hardware	500	Microcontroller device	0	10	1	1
-1	Breadboard	Hardware	90	Circuit building equipment	10	42	3	1
+4	AtMega32	Hardware	500	Microcontroller device	0	10	1	1
+1	Breadboard	Hardware	90	Circuit building equipment	10	52	3	1
 \.
 
 
@@ -220,6 +229,7 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 --
 
 COPY public.equipments_in_locations (equipment_id, location_id, quantity, loan) FROM stdin;
+4	1	10	0
 1	1	17	2
 \.
 
@@ -259,7 +269,7 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 3, true);
+SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 4, true);
 
 
 --

@@ -6,6 +6,6 @@ const router = express.Router();
 
 const {updateStorage}=require("../controller/storageController");
 
-router.put("/updatestorage",updateStorage);
+router.put("/updatestorage/:username",updateStorage);
 
 module.exports=router;
