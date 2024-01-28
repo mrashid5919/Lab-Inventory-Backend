@@ -32,6 +32,28 @@ const showEquipments = async (req,res) => {
     }
   };
 
+  const showEquipmentsStudent = async (req,res) => {
+    //console.log(username);
+    try{
+      const equipments = await pool.query("SELECT * FROM equipments WHERE available > 0");
+      res.status(200).json(equipments.rows);
+    }
+    catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
+  const getIndividualEquipment = async (req,res) => {
+    const id = req.params.id;
+    try{
+      const equipments = await pool.query("SELECT * FROM equipments WHERE equipment_id = $1", [id]);
+      res.status(200).json(equipments.rows[0]);
+    }
+    catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  };
+
   const addNewEquipment = async (req,res) => {
     const {name,quantity,category,cost,description,permit,image}=req.body;
     if(!name || !quantity || !category || !cost || !description || !permit){
@@ -48,4 +70,4 @@ const showEquipments = async (req,res) => {
     }
   };
 
-  module.exports = { showEquipments , showEquipmentsManager, addNewEquipment};
+  module.exports = { showEquipments , showEquipmentsManager, addNewEquipment, showEquipmentsStudent, getIndividualEquipment};

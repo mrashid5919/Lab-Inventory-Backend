@@ -4,12 +4,14 @@ const pool = require("../db");
 
 const router = express.Router();
 
-const {showEquipments,showEquipmentsManager,addNewEquipment}=require("../controller/equipmentController");
+const {showEquipments,showEquipmentsManager,addNewEquipment, showEquipmentsStudent,getIndividualEquipment}=require("../controller/equipmentController");
 
-router.get("/",showEquipments);
+router.get("/",showEquipmentsStudent);
 
 router.get("/:username",showEquipmentsManager);
 
 router.post("/addnewequipment",addNewEquipment);
+
+router.get("/equipment/:id",getIndividualEquipment);
 
 module.exports=router;
