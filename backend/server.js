@@ -2,6 +2,7 @@ require("dotenv").config();
 
 //require
 const express = require("express");
+const cors = require('cors');
 
 //start the app
 
@@ -12,6 +13,8 @@ const storageRoute=require("./routes/storage");
 const app = express();
 
 app.use(express.json());
+
+app.use(cors());
 
 app.use("/api/user", userRoute);
 app.use("/api/equipments",equipmentRoute);
