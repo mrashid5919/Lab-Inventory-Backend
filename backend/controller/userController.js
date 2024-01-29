@@ -87,6 +87,8 @@ const signUpUser = async (req, res) => {
     const newUser = await checkValidity(req);
 
     const token = createToken(newUser.rows[0].user_id);
+    const username=newUser.rows[0].username;
+    const role=newUser.rows[0].role;
 
     res.json({ token });
   } catch (error) {
