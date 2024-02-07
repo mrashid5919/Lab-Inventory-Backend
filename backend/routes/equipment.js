@@ -4,14 +4,23 @@ const pool = require("../db");
 
 const router = express.Router();
 
-const {showEquipments,showEquipmentsManager,addNewEquipment, showEquipmentsStudent,getIndividualEquipment}=require("../controller/equipmentController");
+const {
+  showEquipments,
+  showEquipmentsManager,
+  addNewEquipment,
+  showEquipmentsStudent,
+  showEquipmentsLabAssistant,
+  getIndividualEquipment,
+} = require("../controller/equipmentController");
 
-router.get("/",showEquipmentsStudent);
+router.get("/", showEquipmentsStudent);
 
-router.get("/:username",showEquipmentsManager);
+router.get("/:username", showEquipmentsManager);
 
-router.post("/addnewequipment",addNewEquipment);
+router.get("/labassistant/:username", showEquipmentsLabAssistant);
 
-router.get("/equipment/:id",getIndividualEquipment);
+router.post("/addnewequipment", addNewEquipment);
 
-module.exports=router;
+router.get("/equipment/:id", getIndividualEquipment);
+
+module.exports = router;

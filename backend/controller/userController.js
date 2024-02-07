@@ -14,6 +14,8 @@ const checkValidity = async (req) => {
   const { username, first_name, last_name, email, password, role, phone_no } =
     req.body;
 
+  //console.log(req.body.username, username);
+
   if (
     !username ||
     !first_name ||
@@ -50,12 +52,15 @@ const checkValidity = async (req) => {
   const salt = await bcrypt.genSalt(10);
   const hashed_password = await bcrypt.hash(password, salt);
   //console.log(hashed_password);
-
+  console.log("new user kaj korena");
+  console.log(hashed_password);
   let newUser = await pool.query(
     "INSERT INTO users (username, first_name, last_name, email, password, role, phone_no) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
     [username, first_name, last_name, email, hashed_password, role, phone_no]
   );
 
+  console.log("fraon dbbbbb");
+  console.log(newUser);
   return newUser;
 };
 
@@ -87,10 +92,10 @@ const signUpUser = async (req, res) => {
     const newUser = await checkValidity(req);
 
     const token = createToken(newUser.rows[0].user_id);
-    const username=newUser.rows[0].username;
-    const role=newUser.rows[0].role;
+    const username = newUser.rows[0].username;
+    const role = newUser.rows[0].role;
 
-    res.status(200).json({username,token,role});
+    res.status(200).json({ username, token, role });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -104,7 +109,7 @@ const loginUser = async (req, res) => {
     const token = createToken(user.rows[0].user_id); //the _id is added when the user was first created
     const role = user.rows[0].role;
 
-    res.status(200).json({ username, token , role});
+    res.status(200).json({ username, token, role });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

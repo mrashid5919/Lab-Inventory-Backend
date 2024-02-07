@@ -97,8 +97,8 @@ ALTER SEQUENCE public.equipments_equipment_id_seq OWNED BY public.equipments.equ
 CREATE TABLE public.equipments_in_locations (
     equipment_id integer NOT NULL,
     location_id integer NOT NULL,
-    quantity integer,
-    loan numeric
+    available integer,
+    borrowed numeric
 );
 
 
@@ -220,7 +220,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit) FROM stdin;
 2	Arduino	Hardware	100	Microcontroller	2	15	2	2
 4	AtMega32	Hardware	500	Microcontroller device	0	10	1	1
-1	Breadboard	Hardware	90	Circuit building equipment	10	52	3	1
+1	Breadboard	Hardware	90	Circuit building equipment	10	122	3	1
+5	LED	Hardware	5	Light	0	50	1	1
 \.
 
 
@@ -228,9 +229,11 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 -- Data for Name: equipments_in_locations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.equipments_in_locations (equipment_id, location_id, quantity, loan) FROM stdin;
+COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
 4	1	10	0
-1	1	17	2
+1	1	37	2
+5	1	50	0
+1	2	30	5
 \.
 
 
@@ -240,6 +243,7 @@ COPY public.equipments_in_locations (equipment_id, location_id, quantity, loan) 
 
 COPY public.locations (location_id, location_name, room_no) FROM stdin;
 1	Inventory1	101
+2	Lab1	102
 \.
 
 
@@ -251,8 +255,9 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 1	1905091	Sadia	Tabassum	1905091@ugrad.cse.buet.ac.bd	$2b$10$ZZfW8Mk4rY2cWaDcpnMpWuaWCdba9rSprUdBdHGlI4o30.Ayh0LK.	Student	0170000000
 2	1905099	Aline	Zaman	1905099@ugrad.cse.buet.ac.bd	$2b$10$I5sYZ1cNt6.AnQMy3meQtuXnat.HzsrhsqAaBK74yOuNAbjP1wEOG	Student	01803200049
 3	19050103	Mayesha	Rashid	1905103@ugrad.cse.buet.ac.bd	$2b$10$jZAmLfmRfAJjT8Ep.YSSXuI0GQful/CmviiG24il.HL84oO3d5Cze	Student	0129037502
-4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	inventory manager	293733373
-5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	inventory manager	0189459013
+4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	Inventory Manager	293733373
+5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	Inventory Manager	0189459013
+7	raju	Raju	Ahmed	raju@gmail.com	$2b$10$cUGWmfwgrbLzJs66FZHBZuzIjhEdhN41lwm1lOaBLJqKjGLo1LxvO	Lab Assistant	420957489
 \.
 
 
@@ -262,6 +267,7 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 
 COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 4	1	inventory manager
+7	2	Lab Assistant
 \.
 
 
@@ -269,21 +275,21 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 4, true);
+SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 5, true);
 
 
 --
 -- Name: locations_location_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.locations_location_id_seq', 1, false);
+SELECT pg_catalog.setval('public.locations_location_id_seq', 2, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 5, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 7, true);
 
 
 --
