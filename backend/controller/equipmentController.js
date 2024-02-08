@@ -100,6 +100,20 @@ const addNewEquipment = async (req, res) => {
   }
 };
 
+const getLocations = async (req, res) => {
+  equipment_id = req.params.id;
+  try {
+    const locations = await pool.query(`SELECT l.location_id,l.location_name,el.available
+    FROM locations l
+    JOIN equipments_in_locations el
+    ON l.location_id=el.location_id
+    WHERE el.equipment_id=$1 AND l.location_id!=1;`,[equipment_id]);
+    res.status(200).json(locations.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   showEquipments,
   showEquipmentsManager,
@@ -107,4 +121,5 @@ module.exports = {
   addNewEquipment,
   showEquipmentsStudent,
   getIndividualEquipment,
+  getLocations
 };

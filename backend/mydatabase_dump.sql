@@ -140,6 +140,119 @@ ALTER SEQUENCE public.locations_location_id_seq OWNED BY public.locations.locati
 
 
 --
+-- Name: request_comments; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.request_comments (
+    req_comment_id integer NOT NULL,
+    req_id integer,
+    commenter_id integer,
+    comment text,
+    comment_time date
+);
+
+
+ALTER TABLE public.request_comments OWNER TO postgres;
+
+--
+-- Name: request_comments_req_comment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.request_comments_req_comment_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.request_comments_req_comment_id_seq OWNER TO postgres;
+
+--
+-- Name: request_comments_req_comment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.request_comments_req_comment_id_seq OWNED BY public.request_comments.req_comment_id;
+
+
+--
+-- Name: request_status; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.request_status (
+    req_status integer NOT NULL,
+    status_name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.request_status OWNER TO postgres;
+
+--
+-- Name: request_status_req_status_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.request_status_req_status_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.request_status_req_status_seq OWNER TO postgres;
+
+--
+-- Name: request_status_req_status_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.request_status_req_status_seq OWNED BY public.request_status.req_status;
+
+
+--
+-- Name: requests; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.requests (
+    req_id integer NOT NULL,
+    user_id integer,
+    forwarder_id integer,
+    current_receiver_id integer,
+    location_id integer,
+    equipment_id integer,
+    quantity integer,
+    req_time date,
+    req_status integer,
+    verdictor integer
+);
+
+
+ALTER TABLE public.requests OWNER TO postgres;
+
+--
+-- Name: requests_req_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.requests_req_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.requests_req_id_seq OWNER TO postgres;
+
+--
+-- Name: requests_req_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.requests_req_id_seq OWNED BY public.requests.req_id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -207,6 +320,27 @@ ALTER TABLE ONLY public.locations ALTER COLUMN location_id SET DEFAULT nextval('
 
 
 --
+-- Name: request_comments req_comment_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_comments ALTER COLUMN req_comment_id SET DEFAULT nextval('public.request_comments_req_comment_id_seq'::regclass);
+
+
+--
+-- Name: request_status req_status; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_status ALTER COLUMN req_status SET DEFAULT nextval('public.request_status_req_status_seq'::regclass);
+
+
+--
+-- Name: requests req_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requests ALTER COLUMN req_id SET DEFAULT nextval('public.requests_req_id_seq'::regclass);
+
+
+--
 -- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -244,6 +378,36 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 COPY public.locations (location_id, location_name, room_no) FROM stdin;
 1	Inventory1	101
 2	Lab1	102
+\.
+
+
+--
+-- Data for Name: request_comments; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, comment_time) FROM stdin;
+1	2	7	Sorry some our product was damaged	2024-02-08
+\.
+
+
+--
+-- Data for Name: request_status; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.request_status (req_status, status_name) FROM stdin;
+1	Waiting for Lab Assistant approval
+2	Accepted
+3	Rejected
+\.
+
+
+--
+-- Data for Name: requests; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.requests (req_id, user_id, forwarder_id, current_receiver_id, location_id, equipment_id, quantity, req_time, req_status, verdictor) FROM stdin;
+1	1	\N	\N	2	1	5	2024-02-08	2	7
+2	1	\N	\N	2	1	10	2024-02-08	3	7
 \.
 
 
@@ -286,6 +450,27 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 2, true);
 
 
 --
+-- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 1, true);
+
+
+--
+-- Name: request_status_req_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.request_status_req_status_seq', 3, true);
+
+
+--
+-- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.requests_req_id_seq', 2, true);
+
+
+--
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -314,6 +499,30 @@ ALTER TABLE ONLY public.equipments
 
 ALTER TABLE ONLY public.locations
     ADD CONSTRAINT locations_pkey PRIMARY KEY (location_id);
+
+
+--
+-- Name: request_comments request_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_comments
+    ADD CONSTRAINT request_comments_pkey PRIMARY KEY (req_comment_id);
+
+
+--
+-- Name: request_status request_status_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_status
+    ADD CONSTRAINT request_status_pkey PRIMARY KEY (req_status);
+
+
+--
+-- Name: requests requests_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requests
+    ADD CONSTRAINT requests_pkey PRIMARY KEY (req_id);
 
 
 --
@@ -362,6 +571,46 @@ ALTER TABLE ONLY public.equipments_in_locations
 
 ALTER TABLE ONLY public.equipments_in_locations
     ADD CONSTRAINT equipments_in_locations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(location_id);
+
+
+--
+-- Name: request_comments request_comments_commenter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_comments
+    ADD CONSTRAINT request_comments_commenter_id_fkey FOREIGN KEY (commenter_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: request_comments request_comments_req_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_comments
+    ADD CONSTRAINT request_comments_req_id_fkey FOREIGN KEY (req_id) REFERENCES public.requests(req_id);
+
+
+--
+-- Name: requests requests_equipment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requests
+    ADD CONSTRAINT requests_equipment_id_fkey FOREIGN KEY (equipment_id) REFERENCES public.equipments(equipment_id);
+
+
+--
+-- Name: requests requests_location_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requests
+    ADD CONSTRAINT requests_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(location_id);
+
+
+--
+-- Name: requests requests_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requests
+    ADD CONSTRAINT requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
 
 --

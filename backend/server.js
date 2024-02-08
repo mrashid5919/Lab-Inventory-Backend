@@ -9,6 +9,7 @@ const cors = require("cors");
 const userRoute = require("./routes/user");
 const equipmentRoute = require("./routes/equipment");
 const storageRoute = require("./routes/storage");
+const requestRoute = require("./routes/request");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(cors());
 app.use("/api/user", userRoute);
 app.use("/api/equipments", equipmentRoute);
 app.use("/api/storage", storageRoute);
+app.use("/api/request", requestRoute);
 
 app.get("/home", (req, res) => {
   res.send("hello world");
