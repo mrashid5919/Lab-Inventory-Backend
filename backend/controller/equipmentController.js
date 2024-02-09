@@ -53,6 +53,29 @@ const showEquipmentsLabAssistant = async (req, res) => {
   }
 };
 
+const showInventoryEquipments = async (req, res) => {
+  //console.log(req)
+  //console.log("ashchi")
+  try {
+    const equipments = await pool.query(
+      `SELECT e.equipment_id,e.equipment_name,e.type,e.cost,e.descript,sum(el.available) as available,sum(el.borrowed) as borrowed,e.demand,e.permit
+      FROM equipments e
+      JOIN equipments_in_locations el
+      ON e.equipment_id=el.equipment_id
+      JOIN locations l
+      ON el.location_id=l.location_id
+      JOIN location_types lt
+      ON l.location_type=lt.location_type_id
+      WHERE lt.location_type_name='Inventory'
+      GROUP BY e.equipment_id,e.equipment_name,e.type,e.cost,e.descript,e.demand,e.permit;`
+    );
+    //console.log("here");
+    res.status(200).json(equipments.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 const showEquipmentsStudent = async (req, res) => {
   //console.log(username);
   try {
@@ -121,5 +144,6 @@ module.exports = {
   addNewEquipment,
   showEquipmentsStudent,
   getIndividualEquipment,
-  getLocations
+  getLocations,
+  showInventoryEquipments
 };

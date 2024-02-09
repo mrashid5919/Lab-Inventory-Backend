@@ -100,9 +100,11 @@ const acceptRequest = async (req, res) => {
             "UPDATE requests SET req_status=$1, verdictor=$2 WHERE req_id=$3 RETURNING *",
             [req_status,userID,reqID]
         );
+        //console.log(request.rows[0])
         //console.log(role);
         if(role=="Lab Assistant"){
-            request=await pool.query("UPDATE requests SET lab_assistant=$1 WHERE req_id=$2",[userID,reqID]);
+            request=await pool.query("UPDATE requests SET lab_assistant=$1 WHERE req_id=$2 RETURNING *",[userID,reqID]);
+            console.log(request.rows[0]);
             equip = await pool.query(
                 "SELECT * FROM equipments WHERE equipment_id = $1",
                 [request.rows[0].equipment_id]
@@ -146,7 +148,7 @@ const declineRequest = async (req, res) => {
         );
         if(role!="Lab Assistant"){
             if(role=="Teacher"){
-                request=await pool.query("UPDATE requests SET lab_supervisor=$1 WHERE req_id=$2",[userID,reqID]);
+                request=await pool.query("UPDATE requests SET lab_supervisor=$1 WHERE req_id=$2 RETURNING *",[userID,reqID]);
             }
             equip = await pool.query(
                 "SELECT * FROM equipments WHERE equipment_id = $1",
@@ -245,7 +247,7 @@ const forwardRequesttoSupervisor = async (req, res) => {
     let equipmentID=await pool.query("SELECT equipment_id FROM requests WHERE req_id=$1",[reqID]);
     equipmentID=equipmentID.rows[0].equipment_id;
     try {
-        const request = await pool.query(
+        let request = await pool.query(
             "UPDATE requests SET req_status=$1, lab_assistant=$2 WHERE req_id=$3 RETURNING *",
             [reqstatus,userID,reqID]
         );
@@ -267,7 +269,22 @@ const forwardRequesttoSupervisor = async (req, res) => {
             "UPDATE equipments_in_locations SET available = $1, borrowed = $2 WHERE equipment_id = $3 AND location_id = $4",
             [equipm_in_locations.rows[0].available - quant, equipm_in_locations.rows[0].borrowed + quant, equipmentID, request.rows[0].location_id]
           );
-        res.status(200).json(request.rows[0]);
+          locationID=await pool.query(`SELECT ul.location_id
+          FROM users_in_locations ul
+          JOIN users u
+          ON ul.user_id=u.user_id
+          WHERE u.username=$1;`,[username]);
+          locationID=locationID.rows[0].location_id;
+  
+          request=await pool.query(`SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
+          FROM requests r
+          JOIN request_status rs ON r.req_status = rs.req_status
+          JOIN equipments e ON r.equipment_id = e.equipment_id
+          JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+          JOIN users u ON r.user_id = u.user_id
+          WHERE r.location_id = $1;
+          `,[locationID]);
+        res.status(200).json(request.rows);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
