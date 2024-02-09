@@ -211,20 +211,32 @@ ALTER SEQUENCE public.request_status_req_status_seq OWNED BY public.request_stat
 
 
 --
+-- Name: request_supervisors; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.request_supervisors (
+    req_id integer,
+    supervisor_id integer
+);
+
+
+ALTER TABLE public.request_supervisors OWNER TO postgres;
+
+--
 -- Name: requests; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.requests (
     req_id integer NOT NULL,
     user_id integer,
-    forwarder_id integer,
-    current_receiver_id integer,
     location_id integer,
     equipment_id integer,
     quantity integer,
     req_time date,
     req_status integer,
-    verdictor integer
+    verdictor integer,
+    lab_assistant integer,
+    lab_supervisor integer
 );
 
 
@@ -354,8 +366,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit) FROM stdin;
 2	Arduino	Hardware	100	Microcontroller	2	15	2	2
 4	AtMega32	Hardware	500	Microcontroller device	0	10	1	1
-1	Breadboard	Hardware	90	Circuit building equipment	10	122	3	1
 5	LED	Hardware	5	Light	0	50	1	1
+1	Breadboard	Hardware	90	Circuit building equipment	20	112	3	1
 \.
 
 
@@ -365,9 +377,9 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 
 COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
 4	1	10	0
-1	1	37	2
 5	1	50	0
-1	2	30	5
+1	1	27	210
+1	2	22	2105
 \.
 
 
@@ -398,6 +410,18 @@ COPY public.request_status (req_status, status_name) FROM stdin;
 1	Waiting for Lab Assistant approval
 2	Accepted
 3	Rejected
+4	Waiting for Supervisor approval
+\.
+
+
+--
+-- Data for Name: request_supervisors; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
+2	7
+3	7
+3	8
 \.
 
 
@@ -405,9 +429,9 @@ COPY public.request_status (req_status, status_name) FROM stdin;
 -- Data for Name: requests; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.requests (req_id, user_id, forwarder_id, current_receiver_id, location_id, equipment_id, quantity, req_time, req_status, verdictor) FROM stdin;
-1	1	\N	\N	2	1	5	2024-02-08	2	7
-2	1	\N	\N	2	1	10	2024-02-08	3	7
+COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor) FROM stdin;
+2	1	2	1	10	2024-02-08	4	7	7	\N
+3	1	2	1	5	2024-02-09	4	\N	7	\N
 \.
 
 
@@ -422,6 +446,8 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	Inventory Manager	293733373
 5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	Inventory Manager	0189459013
 7	raju	Raju	Ahmed	raju@gmail.com	$2b$10$cUGWmfwgrbLzJs66FZHBZuzIjhEdhN41lwm1lOaBLJqKjGLo1LxvO	Lab Assistant	420957489
+8	tareqmahmood	Tareq	Mahmood	tm@gmail.com	$2b$10$ZsXuM3BA2A71SBUe5OLZsOfuWwnIcDX7x.uV8edAJwqV/cj2706YS	Teacher	2978542095
+9	mmm	Masum	Mushfiq	mmm@gmail.com	$2b$10$fmpBISGxEIhWIHSuAfJAye9Zr9QtfdSH99vXJ2IeB0iKZfy18wB42	Teacher	29845709475
 \.
 
 
@@ -432,6 +458,8 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 4	1	inventory manager
 7	2	Lab Assistant
+8	2	Teacher
+9	2	Teacher
 \.
 
 
@@ -460,21 +488,21 @@ SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 1, true);
 -- Name: request_status_req_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_status_req_status_seq', 3, true);
+SELECT pg_catalog.setval('public.request_status_req_status_seq', 4, true);
 
 
 --
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 2, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 3, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 7, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 9, true);
 
 
 --
@@ -587,6 +615,22 @@ ALTER TABLE ONLY public.request_comments
 
 ALTER TABLE ONLY public.request_comments
     ADD CONSTRAINT request_comments_req_id_fkey FOREIGN KEY (req_id) REFERENCES public.requests(req_id);
+
+
+--
+-- Name: request_supervisors request_supervisors_req_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_supervisors
+    ADD CONSTRAINT request_supervisors_req_id_fkey FOREIGN KEY (req_id) REFERENCES public.requests(req_id);
+
+
+--
+-- Name: request_supervisors request_supervisors_supervisor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.request_supervisors
+    ADD CONSTRAINT request_supervisors_supervisor_id_fkey FOREIGN KEY (supervisor_id) REFERENCES public.users(user_id);
 
 
 --
