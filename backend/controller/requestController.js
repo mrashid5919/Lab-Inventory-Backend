@@ -43,38 +43,66 @@ const showRequestsLabAssistant = async (req, res) => {
         WHERE u.username=$1;`,[username]);
         locationID=locationID.rows[0].location_id;
 
-        requests=await pool.query(`SELECT e.equipment_name,e.permit,el.available,r.req_id,u.username,r.quantity,rs.status_name,r.req_time
+        requests=await pool.query(`SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
         FROM requests r
-        JOIN request_status rs
-        ON r.req_status=rs.req_status
-        JOIN equipments e
-        ON r.equipment_id=e.equipment_id
-        JOIN equipments_in_locations el
-        ON r.location_id=el.location_id
-        JOIN users u
-        ON r.user_id=u.user_id
-        WHERE r.location_id=$1;
-        `, [locationID]);
+        JOIN request_status rs ON r.req_status = rs.req_status
+        JOIN equipments e ON r.equipment_id = e.equipment_id
+        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+        JOIN users u ON r.user_id = u.user_id
+        WHERE r.location_id = $1;
+        `,[locationID]);
         res.status(200).json(requests.rows);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 }
 
+const showRequestsSupervisor = async (req, res) => {
+    const username=req.params.username;
+
+    try {
+        // locationID=await pool.query(`SELECT ul.location_id
+        // FROM users_in_locations ul
+        // JOIN users u
+        // ON ul.user_id=u.user_id
+        // WHERE u.username=$1;`,[username]);
+        // locationID=locationID.rows[0].location_id;
+        let supervisor_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+        supervisor_id=supervisor_id.rows[0].user_id;
+        //console.log(supervisor_id)
+
+        requests=await pool.query(`SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
+        FROM requests r
+        JOIN request_status rs ON r.req_status = rs.req_status
+        JOIN equipments e ON r.equipment_id = e.equipment_id
+        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+        JOIN users u ON r.user_id = u.user_id
+        JOIN request_supervisors rsu ON r.req_id = rsu.req_id and rsu.supervisor_id=$1;
+        `,[supervisor_id]);
+        //console.log(requests.rows.length)
+        res.status(200).json(requests.rows);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 const acceptRequest = async (req, res) => {
     const reqID=req.params.reqID;
     const username=req.params.username;
     let userID=await pool.query("SELECT user_id,role FROM users WHERE username=$1",[username]);
-    userID=userID.rows[0].user_id;
     let role=userID.rows[0].role;
+    userID=userID.rows[0].user_id;
+    
     let req_status=await pool.query("SELECT req_status FROM request_status WHERE status_name='Accepted'");
     req_status=req_status.rows[0].req_status;
     try {
-        const request = await pool.query(
+        let request = await pool.query(
             "UPDATE requests SET req_status=$1, verdictor=$2 WHERE req_id=$3 RETURNING *",
             [req_status,userID,reqID]
         );
+        //console.log(role);
         if(role=="Lab Assistant"){
+            request=await pool.query("UPDATE requests SET lab_assistant=$1 WHERE req_id=$2",[userID,reqID]);
             equip = await pool.query(
                 "SELECT * FROM equipments WHERE equipment_id = $1",
                 [request.rows[0].equipment_id]
@@ -93,6 +121,9 @@ const acceptRequest = async (req, res) => {
                 [equipm_in_locations.rows[0].available - request.rows[0].quantity, equipm_in_locations.rows[0].borrowed + request.rows[0].quantity, request.rows[0].equipment_id, request.rows[0].location_id]
               );
         }
+        else if(role=="Teacher"){
+            await pool.query("UPDATE requests SET lab_supervisor=$1 WHERE req_id=$2",[userID,reqID]);
+        }
         res.status(200).json(request.rows[0]);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -103,16 +134,20 @@ const declineRequest = async (req, res) => {
     const reqID=req.params.reqID;
     const username=req.params.username;
     let userID=await pool.query("SELECT user_id,role FROM users WHERE username=$1",[username]);
-    userID=userID.rows[0].user_id;
     let role=userID.rows[0].role;
+    userID=userID.rows[0].user_id;
+    
     let req_status=await pool.query("SELECT req_status FROM request_status WHERE status_name='Rejected'");
     req_status=req_status.rows[0].req_status;
     try {
-        const request = await pool.query(
+        let request = await pool.query(
             "UPDATE requests SET req_status=$1, verdictor=$2 WHERE req_id=$3 RETURNING *",
             [req_status,userID,reqID]
         );
         if(role!="Lab Assistant"){
+            if(role=="Teacher"){
+                request=await pool.query("UPDATE requests SET lab_supervisor=$1 WHERE req_id=$2",[userID,reqID]);
+            }
             equip = await pool.query(
                 "SELECT * FROM equipments WHERE equipment_id = $1",
                 [request.rows[0].equipment_id]
@@ -130,6 +165,10 @@ const declineRequest = async (req, res) => {
                 "UPDATE equipments_in_locations SET available = $1, borrowed = $2 WHERE equipment_id = $3 AND location_id = $4",
                 [equipm_in_locations.rows[0].available + request.rows[0].quantity, equipm_in_locations.rows[0].borrowed - request.rows[0].quantity, request.rows[0].equipment_id, request.rows[0].location_id]
               );
+        }
+        else
+        {
+            await pool.query("UPDATE requests SET lab_assistant=$1 WHERE req_id=$2",[userID,reqID]);
         }
         res.status(200).json(request.rows[0]);
     } catch (error) {
@@ -253,4 +292,4 @@ const selectSupervisors = async (req, res) => {
     }
 }
 
-module.exports={createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors}
+module.exports={createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors,showRequestsSupervisor}

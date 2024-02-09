@@ -4,7 +4,7 @@ const pool=require("../db");
 
 const router=express.Router();
 
-const {createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors}=require("../controller/requestController");
+const {createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors,showRequestsSupervisor}=require("../controller/requestController");
 
 router.post("/createrequest/:username/:equipmentID",createRequest);
 
@@ -23,5 +23,7 @@ router.delete("/deleterequest/:reqID",deleteRequest);
 router.put("/forwardrequest/:reqID/:username",forwardRequesttoSupervisor);
 
 router.post("/selectsupervisors/:reqID",selectSupervisors);
+
+router.get("/showrequestssupervisor/:username",showRequestsSupervisor);
 
 module.exports=router;

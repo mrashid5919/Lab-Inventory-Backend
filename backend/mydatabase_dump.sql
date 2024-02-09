@@ -98,7 +98,7 @@ CREATE TABLE public.equipments_in_locations (
     equipment_id integer NOT NULL,
     location_id integer NOT NULL,
     available integer,
-    borrowed numeric
+    borrowed integer
 );
 
 
@@ -367,7 +367,7 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 2	Arduino	Hardware	100	Microcontroller	2	15	2	2
 4	AtMega32	Hardware	500	Microcontroller device	0	10	1	1
 5	LED	Hardware	5	Light	0	50	1	1
-1	Breadboard	Hardware	90	Circuit building equipment	20	112	3	1
+1	Breadboard	Hardware	90	Circuit building equipment	20	90	3	1
 \.
 
 
@@ -379,7 +379,8 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 4	1	10	0
 5	1	50	0
 1	1	27	210
-1	2	22	2105
+2	2	50	5
+1	2	40	15
 \.
 
 
@@ -430,8 +431,9 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 --
 
 COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor) FROM stdin;
-2	1	2	1	10	2024-02-08	4	7	7	\N
-3	1	2	1	5	2024-02-09	4	\N	7	\N
+4	1	2	2	2	2024-02-09	1	\N	\N	\N
+2	1	2	1	10	2024-02-08	2	8	7	8
+3	1	2	1	5	2024-02-09	2	8	7	8
 \.
 
 
@@ -495,7 +497,7 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 4, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 3, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 4, true);
 
 
 --
