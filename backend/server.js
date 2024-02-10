@@ -22,7 +22,7 @@ app.use("/api/user", userRoute);
 app.use("/api/equipments", equipmentRoute);
 app.use("/api/storage", storageRoute);
 app.use("/api/request", requestRoute);
-app.use("/api/location", locationRoute);
+app.use("/api/adminjobs", locationRoute);
 
 app.get("/home", (req, res) => {
   res.send("hello world");

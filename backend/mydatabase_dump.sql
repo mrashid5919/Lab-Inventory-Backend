@@ -411,7 +411,7 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 1	Breadboard	Hardware	90	Circuit building equipment	24	86	3	1
 4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2
 2	Arduino	Hardware	100	Microcontroller	8	9	2	2
-6	Iphone	Software	50000	iphone	0	50	1	3
+6	Iphone	Software	50000	iphone	2	48	1	3
 \.
 
 
@@ -428,7 +428,7 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 4	3	52	4
 2	2	60	11
 6	1	50	0
-6	2	20	0
+6	2	18	2
 \.
 
 
@@ -471,6 +471,7 @@ COPY public.request_status (req_status, status_name) FROM stdin;
 2	Accepted
 3	Rejected
 4	Waiting for Supervisor approval
+5	Waiting for Head of Department approval
 \.
 
 
@@ -482,6 +483,7 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 2	7
 3	7
 3	8
+8	8
 \.
 
 
@@ -491,6 +493,7 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 
 COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor) FROM stdin;
 4	1	2	2	2	2024-02-09	1	\N	\N	\N
+8	1	2	6	2	2024-02-10	5	\N	7	8
 2	1	2	1	10	2024-02-08	2	8	7	8
 5	1	2	1	4	2024-02-09	2	7	7	\N
 3	1	2	1	5	2024-02-09	4	8	7	8
@@ -506,7 +509,6 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 COPY public.users (user_id, username, first_name, last_name, email, password, role, phone_no, assigned) FROM stdin;
 1	1905091	Sadia	Tabassum	1905091@ugrad.cse.buet.ac.bd	$2b$10$ZZfW8Mk4rY2cWaDcpnMpWuaWCdba9rSprUdBdHGlI4o30.Ayh0LK.	Student	0170000000	1
 2	1905099	Aline	Zaman	1905099@ugrad.cse.buet.ac.bd	$2b$10$I5sYZ1cNt6.AnQMy3meQtuXnat.HzsrhsqAaBK74yOuNAbjP1wEOG	Student	01803200049	1
-3	19050103	Mayesha	Rashid	1905103@ugrad.cse.buet.ac.bd	$2b$10$jZAmLfmRfAJjT8Ep.YSSXuI0GQful/CmviiG24il.HL84oO3d5Cze	Student	0129037502	1
 4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	Inventory Manager	293733373	1
 5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	Inventory Manager	0189459013	1
 7	raju	Raju	Ahmed	raju@gmail.com	$2b$10$cUGWmfwgrbLzJs66FZHBZuzIjhEdhN41lwm1lOaBLJqKjGLo1LxvO	Lab Assistant	420957489	1
@@ -515,7 +517,7 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 10	arif	Arif	Haque	arif@gmail.com	$2b$10$IbIfx4OajIUmp9/QgNEYuePPTcLjpnU3B43dlSfGBXXoN00otF9Vu	Lab Assistant	62491087524	1
 11	1905103	Mayesha	Rashid	mayesha1599@gmail.com	$2b$10$I274TLSaz6H5tSjkHZW6xeBlcfDXf/yRzY6Ga9aciWYStebs20lBG	Student	48795249	1
 12	rimpi	Rimpi	Reyaz	rimpi@gmail.com	$2b$10$Rz//YNIuylh9OqXL.A.WL.tN27cXIE2zbAEtLu4P76Ko2Xun1trw6	Teacher	5268289562	1
-13	krv	Kowsic	Roy	kowshic@gmail.com	$2b$10$STEJA6pxC040lp07TIi4RuXoYefwig07OiZnPJdPY2FJ9cHpo/Seq	Teacher	7285250	0
+13	krv	Kowsic	Roy	kowshic@gmail.com	$2b$10$STEJA6pxC040lp07TIi4RuXoYefwig07OiZnPJdPY2FJ9cHpo/Seq	Teacher	7285250	1
 \.
 
 
@@ -530,6 +532,7 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 9	2	Teacher
 10	3	Lab Assistant
 12	3	Teacher
+13	3	Teacher
 \.
 
 
@@ -565,14 +568,14 @@ SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 1, true);
 -- Name: request_status_req_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_status_req_status_seq', 4, true);
+SELECT pg_catalog.setval('public.request_status_req_status_seq', 5, true);
 
 
 --
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 7, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 8, true);
 
 
 --

@@ -417,5 +417,32 @@ const selectSupervisors = async (req, res) => {
     }
 }
 
+const forwardRequesttoHead = async (req, res) => {
+    const reqID=req.params.reqID;
+    const username=req.params.username;
+    try{
+        let userID=await pool.query("SELECT user_id,role FROM users WHERE username=$1",[username]);
+        userID=userID.rows[0].user_id;
+        let reqstatus=await pool.query("SELECT req_status FROM request_status WHERE status_name='Waiting for Head of Department approval'");
+        reqstatus=reqstatus.rows[0].req_status;
+        await pool.query(
+            "UPDATE requests SET req_status=$1, lab_supervisor=$2 WHERE req_id=$3 RETURNING *",
+            [reqstatus,userID,reqID]
+        );
+        let requests=await pool.query(`SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
+        FROM requests r
+        JOIN request_status rs ON r.req_status = rs.req_status
+        JOIN equipments e ON r.equipment_id = e.equipment_id
+        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+        JOIN users u ON r.user_id = u.user_id
+        JOIN request_supervisors rsu ON r.req_id = rsu.req_id and rsu.supervisor_id=$1;
+        `,[userID]);
+        //console.log(requests.rows.length)
+        res.status(200).json(requests.rows);
+    }catch(error){
+        res.status(400).json({ error: error.message });
+    }
+};
+
 module.exports={createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors,showRequestsSupervisor,
-    cancelForwardRequesttoSupervisor}
+    cancelForwardRequesttoSupervisor,forwardRequesttoHead}
