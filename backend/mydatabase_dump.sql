@@ -105,13 +105,48 @@ CREATE TABLE public.equipments_in_locations (
 ALTER TABLE public.equipments_in_locations OWNER TO postgres;
 
 --
+-- Name: location_types; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.location_types (
+    location_type_id integer NOT NULL,
+    location_type_name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.location_types OWNER TO postgres;
+
+--
+-- Name: location_types_location_type_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.location_types_location_type_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.location_types_location_type_id_seq OWNER TO postgres;
+
+--
+-- Name: location_types_location_type_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.location_types_location_type_id_seq OWNED BY public.location_types.location_type_id;
+
+
+--
 -- Name: locations; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.locations (
     location_id integer NOT NULL,
     location_name character varying(30),
-    room_no numeric
+    room_no numeric,
+    location_type integer
 );
 
 
@@ -276,7 +311,8 @@ CREATE TABLE public.users (
     email character varying(50) NOT NULL,
     password character varying(100) NOT NULL,
     role character varying(32) NOT NULL,
-    phone_no character varying(20) NOT NULL
+    phone_no character varying(20) NOT NULL,
+    assigned integer DEFAULT 0
 );
 
 
@@ -325,6 +361,13 @@ ALTER TABLE ONLY public.equipments ALTER COLUMN equipment_id SET DEFAULT nextval
 
 
 --
+-- Name: location_types location_type_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.location_types ALTER COLUMN location_type_id SET DEFAULT nextval('public.location_types_location_type_id_seq'::regclass);
+
+
+--
 -- Name: locations location_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -364,10 +407,11 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 --
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit) FROM stdin;
-2	Arduino	Hardware	100	Microcontroller	2	15	2	2
-4	AtMega32	Hardware	500	Microcontroller device	0	10	1	1
 5	LED	Hardware	5	Light	0	50	1	1
-1	Breadboard	Hardware	90	Circuit building equipment	20	90	3	1
+1	Breadboard	Hardware	90	Circuit building equipment	24	86	3	1
+4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2
+2	Arduino	Hardware	100	Microcontroller	8	9	2	2
+6	Iphone	Software	50000	iphone	0	50	1	3
 \.
 
 
@@ -379,8 +423,22 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 4	1	10	0
 5	1	50	0
 1	1	27	210
-2	2	50	5
-1	2	40	15
+1	2	26	29
+4	2	20	2
+4	3	52	4
+2	2	60	11
+6	1	50	0
+6	2	20	0
+\.
+
+
+--
+-- Data for Name: location_types; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.location_types (location_type_id, location_type_name) FROM stdin;
+1	Inventory
+2	Lab
 \.
 
 
@@ -388,9 +446,10 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 -- Data for Name: locations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.locations (location_id, location_name, room_no) FROM stdin;
-1	Inventory1	101
-2	Lab1	102
+COPY public.locations (location_id, location_name, room_no, location_type) FROM stdin;
+1	Inventory1	101	1
+2	Lab1	102	2
+3	Lab2	103	2
 \.
 
 
@@ -433,7 +492,10 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor) FROM stdin;
 4	1	2	2	2	2024-02-09	1	\N	\N	\N
 2	1	2	1	10	2024-02-08	2	8	7	8
-3	1	2	1	5	2024-02-09	2	8	7	8
+5	1	2	1	4	2024-02-09	2	7	7	\N
+3	1	2	1	5	2024-02-09	4	8	7	8
+7	11	3	4	2	2024-02-10	1	\N	\N	\N
+6	11	3	4	2	2024-02-10	1	\N	\N	\N
 \.
 
 
@@ -441,15 +503,19 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (user_id, username, first_name, last_name, email, password, role, phone_no) FROM stdin;
-1	1905091	Sadia	Tabassum	1905091@ugrad.cse.buet.ac.bd	$2b$10$ZZfW8Mk4rY2cWaDcpnMpWuaWCdba9rSprUdBdHGlI4o30.Ayh0LK.	Student	0170000000
-2	1905099	Aline	Zaman	1905099@ugrad.cse.buet.ac.bd	$2b$10$I5sYZ1cNt6.AnQMy3meQtuXnat.HzsrhsqAaBK74yOuNAbjP1wEOG	Student	01803200049
-3	19050103	Mayesha	Rashid	1905103@ugrad.cse.buet.ac.bd	$2b$10$jZAmLfmRfAJjT8Ep.YSSXuI0GQful/CmviiG24il.HL84oO3d5Cze	Student	0129037502
-4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	Inventory Manager	293733373
-5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	Inventory Manager	0189459013
-7	raju	Raju	Ahmed	raju@gmail.com	$2b$10$cUGWmfwgrbLzJs66FZHBZuzIjhEdhN41lwm1lOaBLJqKjGLo1LxvO	Lab Assistant	420957489
-8	tareqmahmood	Tareq	Mahmood	tm@gmail.com	$2b$10$ZsXuM3BA2A71SBUe5OLZsOfuWwnIcDX7x.uV8edAJwqV/cj2706YS	Teacher	2978542095
-9	mmm	Masum	Mushfiq	mmm@gmail.com	$2b$10$fmpBISGxEIhWIHSuAfJAye9Zr9QtfdSH99vXJ2IeB0iKZfy18wB42	Teacher	29845709475
+COPY public.users (user_id, username, first_name, last_name, email, password, role, phone_no, assigned) FROM stdin;
+1	1905091	Sadia	Tabassum	1905091@ugrad.cse.buet.ac.bd	$2b$10$ZZfW8Mk4rY2cWaDcpnMpWuaWCdba9rSprUdBdHGlI4o30.Ayh0LK.	Student	0170000000	1
+2	1905099	Aline	Zaman	1905099@ugrad.cse.buet.ac.bd	$2b$10$I5sYZ1cNt6.AnQMy3meQtuXnat.HzsrhsqAaBK74yOuNAbjP1wEOG	Student	01803200049	1
+3	19050103	Mayesha	Rashid	1905103@ugrad.cse.buet.ac.bd	$2b$10$jZAmLfmRfAJjT8Ep.YSSXuI0GQful/CmviiG24il.HL84oO3d5Cze	Student	0129037502	1
+4	abul	Abul	Kalam	abul@gmail.com	$2b$10$cCZ/WBvs6salEe/3y4/Cg.eqPixoBRsQAtrH4QtyLuAz6rL4QS3zi	Inventory Manager	293733373	1
+5	mdalam	Alam	Islam	mdalam@gmail.com	$2b$10$m0azq/g3avWavEnOfy3IoO9IfUrY8Cyy2Dqp/slFYrUSmu6WSmSSC	Inventory Manager	0189459013	1
+7	raju	Raju	Ahmed	raju@gmail.com	$2b$10$cUGWmfwgrbLzJs66FZHBZuzIjhEdhN41lwm1lOaBLJqKjGLo1LxvO	Lab Assistant	420957489	1
+8	tareqmahmood	Tareq	Mahmood	tm@gmail.com	$2b$10$ZsXuM3BA2A71SBUe5OLZsOfuWwnIcDX7x.uV8edAJwqV/cj2706YS	Teacher	2978542095	1
+9	mmm	Masum	Mushfiq	mmm@gmail.com	$2b$10$fmpBISGxEIhWIHSuAfJAye9Zr9QtfdSH99vXJ2IeB0iKZfy18wB42	Teacher	29845709475	1
+10	arif	Arif	Haque	arif@gmail.com	$2b$10$IbIfx4OajIUmp9/QgNEYuePPTcLjpnU3B43dlSfGBXXoN00otF9Vu	Lab Assistant	62491087524	1
+11	1905103	Mayesha	Rashid	mayesha1599@gmail.com	$2b$10$I274TLSaz6H5tSjkHZW6xeBlcfDXf/yRzY6Ga9aciWYStebs20lBG	Student	48795249	1
+12	rimpi	Rimpi	Reyaz	rimpi@gmail.com	$2b$10$Rz//YNIuylh9OqXL.A.WL.tN27cXIE2zbAEtLu4P76Ko2Xun1trw6	Teacher	5268289562	1
+13	krv	Kowsic	Roy	kowshic@gmail.com	$2b$10$STEJA6pxC040lp07TIi4RuXoYefwig07OiZnPJdPY2FJ9cHpo/Seq	Teacher	7285250	0
 \.
 
 
@@ -462,6 +528,8 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 7	2	Lab Assistant
 8	2	Teacher
 9	2	Teacher
+10	3	Lab Assistant
+12	3	Teacher
 \.
 
 
@@ -469,14 +537,21 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 5, true);
+SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 6, true);
+
+
+--
+-- Name: location_types_location_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.location_types_location_type_id_seq', 2, true);
 
 
 --
 -- Name: locations_location_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.locations_location_id_seq', 2, true);
+SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 
 
 --
@@ -497,14 +572,14 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 4, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 4, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 7, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 9, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 13, true);
 
 
 --
@@ -521,6 +596,14 @@ ALTER TABLE ONLY public.equipments_in_locations
 
 ALTER TABLE ONLY public.equipments
     ADD CONSTRAINT equipments_pkey PRIMARY KEY (equipment_id);
+
+
+--
+-- Name: location_types location_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.location_types
+    ADD CONSTRAINT location_types_pkey PRIMARY KEY (location_type_id);
 
 
 --

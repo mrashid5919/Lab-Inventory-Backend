@@ -252,15 +252,15 @@ const forwardRequesttoSupervisor = async (req, res) => {
             [reqstatus,userID,reqID]
         );
         //console.log(request.rows[0]);
-        // equip = await pool.query(
-        //     "SELECT * FROM equipments WHERE equipment_id = $1",
-        //     [equipmentID]
-        //   );
-        //   //console.log(equip.rows[0].available, equip.rows[0].borrowed);
-        //   await pool.query(
-        //     "UPDATE equipments SET available = $1, borrowed = $2 WHERE equipment_id = $3",
-        //     [equip.rows[0].available - quant, equip.rows[0].borrowed + quant, equipmentID]
-        //   );
+        equip = await pool.query(
+            "SELECT * FROM equipments WHERE equipment_id = $1",
+            [equipmentID]
+          );
+          //console.log(equip.rows[0].available, equip.rows[0].borrowed);
+          await pool.query(
+            "UPDATE equipments SET available = $1, borrowed = $2 WHERE equipment_id = $3",
+            [equip.rows[0].available - quant, equip.rows[0].borrowed + quant, equipmentID]
+          );
         equipm_in_locations = await pool.query(
             "SELECT * FROM equipments_in_locations WHERE equipment_id = $1 AND location_id = $2",
             [equipmentID, request.rows[0].location_id]
@@ -290,10 +290,67 @@ const forwardRequesttoSupervisor = async (req, res) => {
     }
 };
 
+const cancelForwardRequesttoSupervisor = async (req, res) => {
+    const reqID=req.params.reqID;
+    const username=req.params.username;
+    let quant=await pool.query("SELECT quantity FROM requests WHERE req_id=$1",[reqID]);
+    quant=quant.rows[0].quantity;
+    quant=parseInt(quant,10);
+    let userID=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+    userID=userID.rows[0].user_id;
+    let reqstatus=await pool.query("SELECT req_status FROM request_status WHERE status_name='Waiting for Lab Assistant approval'");
+    reqstatus=reqstatus.rows[0].req_status;
+    //console.log(reqstatus);
+    let equipmentID=await pool.query("SELECT equipment_id FROM requests WHERE req_id=$1",[reqID]);
+    equipmentID=equipmentID.rows[0].equipment_id;
+    try {
+        let request = await pool.query(
+            "UPDATE requests SET req_status=$1, lab_assistant=$2 WHERE req_id=$3 RETURNING *",
+            [reqstatus,null,reqID]
+        );
+        //console.log(request.rows[0]);
+        equip = await pool.query(
+            "SELECT * FROM equipments WHERE equipment_id = $1",
+            [equipmentID]
+          );
+          //console.log(equip.rows[0].available, equip.rows[0].borrowed);
+          await pool.query(
+            "UPDATE equipments SET available = $1, borrowed = $2 WHERE equipment_id = $3",
+            [equip.rows[0].available + quant, equip.rows[0].borrowed - quant, equipmentID]
+          );
+        equipm_in_locations = await pool.query(
+            "SELECT * FROM equipments_in_locations WHERE equipment_id = $1 AND location_id = $2",
+            [equipmentID, request.rows[0].location_id]
+          );
+          await pool.query(
+            "UPDATE equipments_in_locations SET available = $1, borrowed = $2 WHERE equipment_id = $3 AND location_id = $4",
+            [equipm_in_locations.rows[0].available + quant, equipm_in_locations.rows[0].borrowed - quant, equipmentID, request.rows[0].location_id]
+          );
+          locationID=await pool.query(`SELECT ul.location_id
+          FROM users_in_locations ul
+          JOIN users u
+          ON ul.user_id=u.user_id
+          WHERE u.username=$1;`,[username]);
+          locationID=locationID.rows[0].location_id;
+  
+          request=await pool.query(`SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
+          FROM requests r
+          JOIN request_status rs ON r.req_status = rs.req_status
+          JOIN equipments e ON r.equipment_id = e.equipment_id
+          JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+          JOIN users u ON r.user_id = u.user_id
+          WHERE r.location_id = $1;
+          `,[locationID]);
+        res.status(200).json(request.rows);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+
 const selectSupervisors = async (req, res) => {
     const reqID=req.params.reqID;
     const supervisors=req.body.supervisors;
-    console.log(supervisors);
+    //console.log(supervisors);
     try {
         for(i=0;i<supervisors.length;i++){
             userID=supervisors[i];
@@ -302,11 +359,63 @@ const selectSupervisors = async (req, res) => {
                 [reqID, userID]
             );
         }
-        const request_supervisors=await pool.query("SELECT * FROM request_supervisors WHERE req_id=$1",[reqID]);
-        res.status(200).json(request_supervisors.rows);
+        if(supervisors==null)
+        {
+            const reqID=req.params.reqID;
+        const username=req.params.username;
+        let quant=await pool.query("SELECT quantity FROM requests WHERE req_id=$1",[reqID]);
+        quant=quant.rows[0].quantity;
+        quant=parseInt(quant,10);
+        let userID=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+        userID=userID.rows[0].user_id;
+        let reqstatus=await pool.query("SELECT req_status FROM request_status WHERE status_name='Waiting for Lab Assistant approval'");
+        reqstatus=reqstatus.rows[0].req_status;
+        //console.log(reqstatus);
+        let equipmentID=await pool.query("SELECT equipment_id FROM requests WHERE req_id=$1",[reqID]);
+        equipmentID=equipmentID.rows[0].equipment_id;
+        let request = await pool.query(
+                "UPDATE requests SET req_status=$1, lab_assistant=$2 WHERE req_id=$3 RETURNING *",
+                [reqstatus,null,reqID]
+            );
+            //console.log(request.rows[0]);
+            equip = await pool.query(
+                "SELECT * FROM equipments WHERE equipment_id = $1",
+                [equipmentID]
+            );
+            //console.log(equip.rows[0].available, equip.rows[0].borrowed);
+            await pool.query(
+                "UPDATE equipments SET available = $1, borrowed = $2 WHERE equipment_id = $3",
+                [equip.rows[0].available + quant, equip.rows[0].borrowed - quant, equipmentID]
+            );
+            equipm_in_locations = await pool.query(
+                "SELECT * FROM equipments_in_locations WHERE equipment_id = $1 AND location_id = $2",
+                [equipmentID, request.rows[0].location_id]
+            );
+            await pool.query(
+                "UPDATE equipments_in_locations SET available = $1, borrowed = $2 WHERE equipment_id = $3 AND location_id = $4",
+                [equipm_in_locations.rows[0].available + quant, equipm_in_locations.rows[0].borrowed - quant, equipmentID, request.rows[0].location_id]
+            );
+        }
+        locationID=await pool.query(`SELECT ul.location_id
+            FROM users_in_locations ul
+            JOIN users u
+            ON ul.user_id=u.user_id
+            WHERE u.username=$1;`,[username]);
+            locationID=locationID.rows[0].location_id;
+    
+            request=await pool.query(`SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
+            FROM requests r
+            JOIN request_status rs ON r.req_status = rs.req_status
+            JOIN equipments e ON r.equipment_id = e.equipment_id
+            JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+            JOIN users u ON r.user_id = u.user_id
+            WHERE r.location_id = $1;
+            `,[locationID]);
+        res.status(200).json(request.rows);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 }
 
-module.exports={createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors,showRequestsSupervisor}
+module.exports={createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors,showRequestsSupervisor,
+    cancelForwardRequesttoSupervisor}
