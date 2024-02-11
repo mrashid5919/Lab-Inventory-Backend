@@ -143,6 +143,20 @@ const acceptRequest = async (req, res) => {
                 "UPDATE equipments_in_locations SET available = $1 WHERE equipment_id = $2 AND location_id = $3",
                 [equipm_in_locations.rows[0].available - request.rows[0].quantity, request.rows[0].equipment_id, request.rows[0].location_id]
               );
+              let lab_location=await pool.query(`SELECT ul.location_id
+              FROM users_in_locations ul
+              JOIN users u
+              ON ul.user_id=u.user_id
+              WHERE u.username=$1;`,[request.rows[0].username]);
+                lab_location=lab_location.rows[0].location_id;
+                equipm_in_locations = await pool.query(
+                    "SELECT * FROM equipments_in_locations WHERE equipment_id = $1 AND location_id = $2",
+                    [request.rows[0].equipment_id, lab_location]
+                  );
+                  await pool.query(
+                    "UPDATE equipments_in_locations SET available = $1 WHERE equipment_id = $2 AND location_id = $3",
+                    [equipm_in_locations.rows[0].available + request.rows[0].quantity, request.rows[0].equipment_id, lab_location]
+                  );
         }
         else if(role=="Teacher"){
             await pool.query("UPDATE requests SET lab_supervisor=$1 WHERE req_id=$2",[userID,reqID]);
