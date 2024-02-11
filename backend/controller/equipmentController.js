@@ -18,7 +18,7 @@ const showEquipmentsManager = async (req, res) => {
   //console.log(username);
   try {
     const equipments = await pool.query(
-      `SELECT e.EQUIPMENT_NAME, el.EQUIPMENT_ID, el.available, el.borrowed
+      `SELECT e.EQUIPMENT_NAME, el.EQUIPMENT_ID, el.available, el.borrowed, e.image_link
       FROM EQUIPMENTS e
       JOIN EQUIPMENTS_IN_LOCATIONS el ON e.EQUIPMENT_ID = el.EQUIPMENT_ID
       JOIN LOCATIONS l ON l.LOCATION_ID = el.LOCATION_ID
@@ -38,7 +38,7 @@ const showEquipmentsLabAssistant = async (req, res) => {
   //console.log(username);
   try {
     const equipments = await pool.query(
-      `SELECT e.EQUIPMENT_NAME, el.EQUIPMENT_ID, el.available, el.borrowed
+      `SELECT e.EQUIPMENT_NAME, el.EQUIPMENT_ID, el.available, el.borrowed, e.image_link
       FROM EQUIPMENTS e
       JOIN EQUIPMENTS_IN_LOCATIONS el ON e.EQUIPMENT_ID = el.EQUIPMENT_ID
       JOIN LOCATIONS l ON l.LOCATION_ID = el.LOCATION_ID
@@ -58,7 +58,7 @@ const showInventoryEquipments = async (req, res) => {
   //console.log("ashchi")
   try {
     const equipments = await pool.query(
-      `SELECT e.equipment_id,e.equipment_name,e.type,e.cost,e.descript,sum(el.available) as available,sum(el.borrowed) as borrowed,e.demand,e.permit
+      `SELECT e.equipment_id,e.equipment_name,e.type,e.cost,e.descript,sum(el.available) as available,sum(el.borrowed) as borrowed,e.demand,e.permit,e.image_link
       FROM equipments e
       JOIN equipments_in_locations el
       ON e.equipment_id=el.equipment_id
@@ -109,8 +109,8 @@ const addNewEquipment = async (req, res) => {
   }
   const quant = parseInt(quantity, 10);
   let NewEquipment = await pool.query(
-    "INSERT INTO equipments (equipment_name, type, cost, descript, borrowed, available, demand, permit) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
-    [name, category, cost, description, 0, quant, 1, permit]
+    "INSERT INTO equipments (equipment_name, type, cost, descript, borrowed, available, demand, permit,image_link) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+    [name, category, cost, description, 0, quant, 1, permit,image]
   );
   await pool.query(
     "INSERT INTO equipments_in_locations (equipment_id, location_id, available, borrowed) VALUES ($1, $2, $3, $4)",
@@ -137,6 +137,20 @@ const getLocations = async (req, res) => {
   }
 };
 
+const getInventories = async (req, res) => {
+  equipment_id = req.params.id;
+  try {
+    const locations = await pool.query(`SELECT l.location_id,l.location_name,el.available
+    FROM locations l
+    JOIN equipments_in_locations el
+    ON l.location_id=el.location_id
+    WHERE el.equipment_id=$1 AND l.location_type=1;`,[equipment_id]);
+    res.status(200).json(locations.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   showEquipments,
   showEquipmentsManager,
@@ -145,5 +159,6 @@ module.exports = {
   showEquipmentsStudent,
   getIndividualEquipment,
   getLocations,
-  showInventoryEquipments
+  showInventoryEquipments,
+  getInventories
 };

@@ -12,12 +12,13 @@ const {
   showEquipmentsLabAssistant,
   getIndividualEquipment,
   getLocations,
-  showInventoryEquipments
+  getInventories,
+  showInventoryEquipments,
 } = require("../controller/equipmentController");
 
 router.get("/", showEquipmentsStudent);
 
-router.get("/showinventoryequipments",showInventoryEquipments);
+router.get("/showinventoryequipments", showInventoryEquipments);
 
 router.get("/:username", showEquipmentsManager);
 
@@ -29,6 +30,6 @@ router.get("/equipment/:id", getIndividualEquipment);
 
 router.get("/equipment/:id/locations", getLocations);
 
-
+router.get("/equipment/:id/inventories", getInventories);
 
 module.exports = router;

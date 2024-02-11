@@ -1,13 +1,19 @@
-const express=require("express");
+const express = require("express");
 
-const pool=require("../db");
+const pool = require("../db");
 
-const router=express.Router();
+const router = express.Router();
 
-const {seePendingRegistrations,assignLocation,showUsers}=require("../controller/locationController");
+const {
+  seePendingRegistrations,
+  assignLocation,
+  showUsers,
+  getLabs,
+} = require("../controller/locationController");
 
-router.get("/seependingregistrations",seePendingRegistrations);
-router.put("/assignlocation/:user_id",assignLocation);
-router.get("/showusers",showUsers);
+router.get("/seependingregistrations", seePendingRegistrations);
+router.post("/assignlocation/:user_id", assignLocation);
+router.get("/showusers", showUsers);
+router.get("/getlabs", getLabs);
 
-module.exports=router;
+module.exports = router;

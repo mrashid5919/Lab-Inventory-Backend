@@ -33,7 +33,8 @@ CREATE TABLE public.equipments (
     borrowed integer,
     available integer,
     demand integer,
-    permit integer
+    permit integer,
+    image_link text
 );
 
 
@@ -407,12 +408,12 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 -- Data for Name: equipments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit) FROM stdin;
-5	LED	Hardware	5	Light	0	50	1	1
-4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2
-2	Arduino	Hardware	100	Microcontroller	8	9	2	2
-6	Iphone	Software	50000	iphone	3	47	1	3
-1	Breadboard	Hardware	90	Circuit building equipment	25	85	3	1
+COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
+1	Breadboard	Hardware	90	Circuit building equipment	25	85	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
+4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
+5	LED	Hardware	5	Light	0	100	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
+6	Iphone	Software	50000	iphone	3	47	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
+2	Arduino	Hardware	100	Microcontroller	11	160	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
 \.
 
 
@@ -422,14 +423,16 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 
 COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
 4	1	10	0
-5	1	50	0
 1	1	27	210
 4	2	20	2
 4	3	52	4
 2	2	60	11
-6	1	50	0
-6	2	17	3
 1	2	25	30
+5	1	97	0
+5	2	3	\N
+6	1	47	0
+6	2	20	3
+2	1	100	\N
 \.
 
 
@@ -506,6 +509,9 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 3	1	2	1	5	2024-02-09	4	8	7	8	\N
 7	11	3	4	2	2024-02-10	1	\N	\N	\N	\N
 6	11	3	4	2	2024-02-10	1	\N	\N	\N	\N
+12	7	1	4	1	2024-02-11	2	4	\N	\N	4
+13	7	1	5	3	2024-02-11	2	4	\N	\N	4
+14	7	1	6	3	2024-02-11	2	4	\N	\N	4
 \.
 
 
@@ -525,6 +531,9 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 11	1905103	Mayesha	Rashid	mayesha1599@gmail.com	$2b$10$I274TLSaz6H5tSjkHZW6xeBlcfDXf/yRzY6Ga9aciWYStebs20lBG	Student	48795249	1
 12	rimpi	Rimpi	Reyaz	rimpi@gmail.com	$2b$10$Rz//YNIuylh9OqXL.A.WL.tN27cXIE2zbAEtLu4P76Ko2Xun1trw6	Teacher	5268289562	1
 13	krv	Kowsic	Roy	kowshic@gmail.com	$2b$10$STEJA6pxC040lp07TIi4RuXoYefwig07OiZnPJdPY2FJ9cHpo/Seq	Teacher	7285250	1
+14	nazmul	Nazmul	Hasan	nazmul@gmail.com	$2b$10$xasXMjPqF2LSlOSxO1mckODM3TQDeUQl6WJ2haTVvPmgRAXLGK7Oa	Super Admin	27962906852	0
+15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Deparment Head	52095720	0
+16	minu	Minu	Islam	minu@gmail.com	$2b$10$jUPLHVSaAFfMVTXlaVmM5uiY5kNFt7AoGtJZ4/TbN9Kzx3vSZojui	Lab Assistant	341234324	0
 \.
 
 
@@ -547,7 +556,7 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 6, true);
+SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 7, true);
 
 
 --
@@ -582,14 +591,14 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 11, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 14, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 13, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 16, true);
 
 
 --
