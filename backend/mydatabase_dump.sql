@@ -176,6 +176,44 @@ ALTER SEQUENCE public.locations_location_id_seq OWNED BY public.locations.locati
 
 
 --
+-- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.notifications (
+    notification_id integer NOT NULL,
+    receiver_id integer,
+    sender_name text,
+    sender_role text,
+    notification text,
+    notification_time date
+);
+
+
+ALTER TABLE public.notifications OWNER TO postgres;
+
+--
+-- Name: notifications_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.notifications_notification_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.notifications_notification_id_seq OWNER TO postgres;
+
+--
+-- Name: notifications_notification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.notifications_notification_id_seq OWNED BY public.notifications.notification_id;
+
+
+--
 -- Name: request_comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -356,6 +394,19 @@ ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
 
 
 --
+-- Name: viewed_notification; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.viewed_notification (
+    user_id integer,
+    viewed_notification_count integer DEFAULT 0,
+    total_notification_count integer DEFAULT 0
+);
+
+
+ALTER TABLE public.viewed_notification OWNER TO postgres;
+
+--
 -- Name: equipments equipment_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -374,6 +425,13 @@ ALTER TABLE ONLY public.location_types ALTER COLUMN location_type_id SET DEFAULT
 --
 
 ALTER TABLE ONLY public.locations ALTER COLUMN location_id SET DEFAULT nextval('public.locations_location_id_seq'::regclass);
+
+
+--
+-- Name: notifications notification_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications ALTER COLUMN notification_id SET DEFAULT nextval('public.notifications_notification_id_seq'::regclass);
 
 
 --
@@ -411,9 +469,9 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
 1	Breadboard	Hardware	90	Circuit building equipment	25	85	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
-5	LED	Hardware	5	Light	0	100	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
 6	Iphone	Software	50000	iphone	3	47	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
 2	Arduino	Hardware	100	Microcontroller	11	160	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
+5	LED	Hardware	5	Light	1	99	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
 \.
 
 
@@ -423,16 +481,16 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 
 COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
 4	1	10	0
-1	1	27	210
 4	2	20	2
 4	3	52	4
 2	2	60	11
-1	2	25	30
 5	1	97	0
-5	2	3	\N
 6	1	47	0
 6	2	20	3
 2	1	100	\N
+1	1	22	210
+1	2	30	30
+5	2	2	1
 \.
 
 
@@ -458,12 +516,21 @@ COPY public.locations (location_id, location_name, room_no, location_type) FROM 
 
 
 --
+-- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.notifications (notification_id, receiver_id, sender_name, sender_role, notification, notification_time) FROM stdin;
+\.
+
+
+--
 -- Data for Name: request_comments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, comment_time) FROM stdin;
 1	2	7	Sorry some our product was damaged	2024-02-08
 2	10	7	Collect on 12 feb	2024-02-11
+3	15	7	Take it from lab	2024-02-11
 \.
 
 
@@ -503,7 +570,6 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 8	1	2	6	2	2024-02-10	5	\N	7	8	\N
 9	1	2	6	1	2024-02-11	4	\N	7	\N	\N
 10	1	2	1	1	2024-02-11	2	7	7	\N	\N
-11	7	1	1	5	2024-02-11	3	4	\N	\N	4
 2	1	2	1	10	2024-02-08	2	8	7	8	\N
 5	1	2	1	4	2024-02-09	2	7	7	\N	\N
 3	1	2	1	5	2024-02-09	4	8	7	8	\N
@@ -512,6 +578,8 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 12	7	1	4	1	2024-02-11	2	4	\N	\N	4
 13	7	1	5	3	2024-02-11	2	4	\N	\N	4
 14	7	1	6	3	2024-02-11	2	4	\N	\N	4
+11	7	1	1	5	2024-02-11	2	4	\N	\N	4
+15	11	2	5	1	2024-02-11	2	7	7	\N	\N
 \.
 
 
@@ -534,6 +602,7 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 14	nazmul	Nazmul	Hasan	nazmul@gmail.com	$2b$10$xasXMjPqF2LSlOSxO1mckODM3TQDeUQl6WJ2haTVvPmgRAXLGK7Oa	Super Admin	27962906852	0
 15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Deparment Head	52095720	0
 16	minu	Minu	Islam	minu@gmail.com	$2b$10$jUPLHVSaAFfMVTXlaVmM5uiY5kNFt7AoGtJZ4/TbN9Kzx3vSZojui	Lab Assistant	341234324	0
+18	amin	Amin	Hasan	amin@gmail.com	$2b$10$UbIlKAQtdn4Jp6pw/pNevuOx5uIc.94TRh.FuWYnBwp6nzeYPvT8y	Inventory Manager	93805580543890	0
 \.
 
 
@@ -549,6 +618,29 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 10	3	Lab Assistant
 12	3	Teacher
 13	3	Teacher
+\.
+
+
+--
+-- Data for Name: viewed_notification; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.viewed_notification (user_id, viewed_notification_count, total_notification_count) FROM stdin;
+1	0	0
+2	0	0
+4	0	0
+5	0	0
+7	0	0
+8	0	0
+9	0	0
+10	0	0
+11	0	0
+12	0	0
+13	0	0
+14	0	0
+15	0	0
+16	0	0
+18	0	0
 \.
 
 
@@ -574,10 +666,17 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 
 
 --
+-- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 1, false);
+
+
+--
 -- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 2, true);
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 3, true);
 
 
 --
@@ -591,14 +690,14 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 14, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 15, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 16, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 18, true);
 
 
 --
@@ -631,6 +730,14 @@ ALTER TABLE ONLY public.location_types
 
 ALTER TABLE ONLY public.locations
     ADD CONSTRAINT locations_pkey PRIMARY KEY (location_id);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (notification_id);
 
 
 --
@@ -706,6 +813,22 @@ ALTER TABLE ONLY public.equipments_in_locations
 
 
 --
+-- Name: notifications notifications_receiver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_receiver_id_fkey FOREIGN KEY (receiver_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: notifications notifications_sender_name_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_sender_name_fkey FOREIGN KEY (sender_name) REFERENCES public.users(username);
+
+
+--
 -- Name: request_comments request_comments_commenter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -775,6 +898,14 @@ ALTER TABLE ONLY public.users_in_locations
 
 ALTER TABLE ONLY public.users_in_locations
     ADD CONSTRAINT users_in_locations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: viewed_notification viewed_notification_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.viewed_notification
+    ADD CONSTRAINT viewed_notification_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
 
 --

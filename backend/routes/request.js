@@ -7,6 +7,8 @@ const router=express.Router();
 const {createRequest,
     sendRequesttoInventoryManager,
     showRequestsLabAssistant,
+    showSentRequests,
+    showRequestsDeptHead,
     acceptRequest,
     declineRequest,
     addComment,
@@ -21,6 +23,10 @@ const {createRequest,
 router.post("/createrequest/:username/:equipmentID",createRequest);
 
 router.post("/sendrequesttoinventorymanager/:username/:equipmentID",sendRequesttoInventoryManager);
+
+router.get("/showsentrequests/:username",showSentRequests);
+
+router.get("/showrequestsdepthead",showRequestsDeptHead);
 
 router.get("/showrequests/:username",showRequestsLabAssistant);
 

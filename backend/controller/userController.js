@@ -59,6 +59,10 @@ const checkValidity = async (req) => {
     [username, first_name, last_name, email, hashed_password, role, phone_no]
   );
 
+  await pool.query(
+    "INSERT INTO viewed_notification(user_id) VALUES ($1)",[newUser.rows[0].user_id]
+  );
+
   console.log("fraon dbbbbb");
   console.log(newUser);
   return newUser;
