@@ -444,5 +444,45 @@ const forwardRequesttoHead = async (req, res) => {
     }
 };
 
-module.exports={createRequest,showRequestsLabAssistant,acceptRequest,declineRequest,addComment,deleteRequest,forwardRequesttoSupervisor,getSupervisors,selectSupervisors,showRequestsSupervisor,
-    cancelForwardRequesttoSupervisor,forwardRequesttoHead}
+const sendRequesttoInventoryManager = async (req, res) => {
+    const username=req.params.username;
+    const equipmentID=req.params.equipmentID;
+    const {quantity, location}=req.body;
+    if(!quantity || !location){
+        return res.status(400).json({error:"All fields are required"});
+    }
+    const locationID=parseInt(location,10);
+    const quant=parseInt(quantity,10);
+    let equip_in_locations=await pool.query("SELECT available FROM equipments_in_locations WHERE equipment_id=$1 AND location_id=$2",[equipmentID,locationID]);
+    equip_in_locations=parseInt(equip_in_locations.rows[0].available,10);
+    if(quant>equip_in_locations){
+        return res.status(400).json({error:"Requested quantity is not available in this location"});
+    }
+    let userID=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+    userID=userID.rows[0].user_id;
+    let req_status=await pool.query("SELECT req_status FROM request_status WHERE status_name='Waiting for inventory manager approval'");
+    req_status=req_status.rows[0].req_status;
+    try {
+        const request = await pool.query(
+            "INSERT INTO requests (user_id, equipment_id, quantity, location_id, req_status, req_time) VALUES ($1, $2, $3, $4, $5, CURRENT_DATE) RETURNING *",
+            [userID, equipmentID, quant, locationID, req_status]
+        );
+        res.status(200).json(request.rows[0]);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
+module.exports={createRequest,
+    showRequestsLabAssistant,
+    acceptRequest,
+    declineRequest,
+    addComment,
+    deleteRequest,
+    forwardRequesttoSupervisor,
+    getSupervisors,
+    selectSupervisors,
+    showRequestsSupervisor,
+    cancelForwardRequesttoSupervisor,
+    forwardRequesttoHead,
+    sendRequesttoInventoryManager}

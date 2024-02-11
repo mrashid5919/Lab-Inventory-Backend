@@ -271,7 +271,8 @@ CREATE TABLE public.requests (
     req_status integer,
     verdictor integer,
     lab_assistant integer,
-    lab_supervisor integer
+    lab_supervisor integer,
+    inventory_manager integer
 );
 
 
@@ -408,10 +409,10 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit) FROM stdin;
 5	LED	Hardware	5	Light	0	50	1	1
-1	Breadboard	Hardware	90	Circuit building equipment	24	86	3	1
 4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2
 2	Arduino	Hardware	100	Microcontroller	8	9	2	2
-6	Iphone	Software	50000	iphone	2	48	1	3
+6	Iphone	Software	50000	iphone	3	47	1	3
+1	Breadboard	Hardware	90	Circuit building equipment	25	85	3	1
 \.
 
 
@@ -423,12 +424,12 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 4	1	10	0
 5	1	50	0
 1	1	27	210
-1	2	26	29
 4	2	20	2
 4	3	52	4
 2	2	60	11
 6	1	50	0
-6	2	18	2
+6	2	17	3
+1	2	25	30
 \.
 
 
@@ -459,6 +460,7 @@ COPY public.locations (location_id, location_name, room_no, location_type) FROM 
 
 COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, comment_time) FROM stdin;
 1	2	7	Sorry some our product was damaged	2024-02-08
+2	10	7	Collect on 12 feb	2024-02-11
 \.
 
 
@@ -472,6 +474,7 @@ COPY public.request_status (req_status, status_name) FROM stdin;
 3	Rejected
 4	Waiting for Supervisor approval
 5	Waiting for Head of Department approval
+6	Waiting for inventory manager approval
 \.
 
 
@@ -484,6 +487,7 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 3	7
 3	8
 8	8
+9	8
 \.
 
 
@@ -491,14 +495,17 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 -- Data for Name: requests; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor) FROM stdin;
-4	1	2	2	2	2024-02-09	1	\N	\N	\N
-8	1	2	6	2	2024-02-10	5	\N	7	8
-2	1	2	1	10	2024-02-08	2	8	7	8
-5	1	2	1	4	2024-02-09	2	7	7	\N
-3	1	2	1	5	2024-02-09	4	8	7	8
-7	11	3	4	2	2024-02-10	1	\N	\N	\N
-6	11	3	4	2	2024-02-10	1	\N	\N	\N
+COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor, inventory_manager) FROM stdin;
+4	1	2	2	2	2024-02-09	1	\N	\N	\N	\N
+8	1	2	6	2	2024-02-10	5	\N	7	8	\N
+9	1	2	6	1	2024-02-11	4	\N	7	\N	\N
+10	1	2	1	1	2024-02-11	2	7	7	\N	\N
+11	7	1	1	5	2024-02-11	6	\N	\N	\N	\N
+2	1	2	1	10	2024-02-08	2	8	7	8	\N
+5	1	2	1	4	2024-02-09	2	7	7	\N	\N
+3	1	2	1	5	2024-02-09	4	8	7	8	\N
+7	11	3	4	2	2024-02-10	1	\N	\N	\N	\N
+6	11	3	4	2	2024-02-10	1	\N	\N	\N	\N
 \.
 
 
@@ -561,21 +568,21 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 -- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 1, true);
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 2, true);
 
 
 --
 -- Name: request_status_req_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_status_req_status_seq', 5, true);
+SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 
 
 --
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 8, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 11, true);
 
 
 --
