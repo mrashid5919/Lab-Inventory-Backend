@@ -104,7 +104,7 @@ const acceptRequest = async (req, res) => {
         //console.log(role);
         if(role=="Lab Assistant"){
             request=await pool.query("UPDATE requests SET lab_assistant=$1 WHERE req_id=$2 RETURNING *",[userID,reqID]);
-            console.log(request.rows[0]);
+            //console.log(request.rows[0]);
             equip = await pool.query(
                 "SELECT * FROM equipments WHERE equipment_id = $1",
                 [request.rows[0].equipment_id]
@@ -121,6 +121,27 @@ const acceptRequest = async (req, res) => {
               await pool.query(
                 "UPDATE equipments_in_locations SET available = $1, borrowed = $2 WHERE equipment_id = $3 AND location_id = $4",
                 [equipm_in_locations.rows[0].available - request.rows[0].quantity, equipm_in_locations.rows[0].borrowed + request.rows[0].quantity, request.rows[0].equipment_id, request.rows[0].location_id]
+              );
+        }
+        else if(role=="Inventory Manager")
+        {
+            request=await pool.query("UPDATE requests SET inventory_manager=$1 WHERE req_id=$2",[userID,reqID]);
+            // equip = await pool.query(
+            //     "SELECT * FROM equipments WHERE equipment_id = $1",
+            //     [request.rows[0].equipment_id]
+            //   );
+            //   //console.log(equip.rows[0].available, equip.rows[0].borrowed);
+            //   await pool.query(
+            //     "UPDATE equipments SET available = $1, borrowed = $2 WHERE equipment_id = $3",
+            //     [equip.rows[0].available - request.rows[0].quantity, equip.rows[0].borrowed + request.rows[0].quantity, request.rows[0].equipment_id]
+            //   );
+              equipm_in_locations = await pool.query(
+                "SELECT * FROM equipments_in_locations WHERE equipment_id = $1 AND location_id = $2",
+                [request.rows[0].equipment_id, request.rows[0].location_id]
+              );
+              await pool.query(
+                "UPDATE equipments_in_locations SET available = $1 WHERE equipment_id = $2 AND location_id = $3",
+                [equipm_in_locations.rows[0].available - request.rows[0].quantity, request.rows[0].equipment_id, request.rows[0].location_id]
               );
         }
         else if(role=="Teacher"){
@@ -146,7 +167,7 @@ const declineRequest = async (req, res) => {
             "UPDATE requests SET req_status=$1, verdictor=$2 WHERE req_id=$3 RETURNING *",
             [req_status,userID,reqID]
         );
-        if(role!="Lab Assistant"){
+        if(role!="Lab Assistant" && role!="Inventory Manager"){
             if(role=="Teacher"){
                 request=await pool.query("UPDATE requests SET lab_supervisor=$1 WHERE req_id=$2 RETURNING *",[userID,reqID]);
             }
@@ -168,9 +189,13 @@ const declineRequest = async (req, res) => {
                 [equipm_in_locations.rows[0].available + request.rows[0].quantity, equipm_in_locations.rows[0].borrowed - request.rows[0].quantity, request.rows[0].equipment_id, request.rows[0].location_id]
               );
         }
-        else
+        else if(role=="Lab Assistant")
         {
             await pool.query("UPDATE requests SET lab_assistant=$1 WHERE req_id=$2",[userID,reqID]);
+        }
+        else if(role=="Inventory Manager")
+        {
+            await pool.query("UPDATE requests SET inventory_manager=$1 WHERE req_id=$2",[userID,reqID]);
         }
         res.status(200).json(request.rows[0]);
     } catch (error) {
