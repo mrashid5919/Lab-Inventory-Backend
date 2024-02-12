@@ -14,7 +14,7 @@ const seePendingRegistrations = async (req, res) => {
 const showUsers = async (req, res) => {
   try {
     const users = await pool.query(
-      `SELECT u.username,u.first_name,u.last_name,u.email,u.role,u.phone_no,l.location_name
+      `SELECT u.user_id,u.username,u.first_name,u.last_name,u.email,u.role,u.phone_no,l.location_name
             FROM users u
             JOIN users_in_locations ul ON u.user_id=ul.user_id
             JOIN locations l ON l.location_id=ul.location_id`

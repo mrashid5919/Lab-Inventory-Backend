@@ -30,6 +30,7 @@ const updateStorage = async (req, res) => {
     throw Error("Wrong username");
   }
   const location_ID = location_IDquery.rows[0].location_id;
+  console.log(location_ID)
 
   const quant = parseInt(req.body.quantity, 10);
 
@@ -43,21 +44,28 @@ const updateStorage = async (req, res) => {
       "UPDATE equipments SET available = $1 WHERE equipment_id = $2",
       [equip.rows[0].available + quant, equipmentID]
     );
-    const updatedEquipment = await pool.query(
-      "SELECT * FROM equipments WHERE equipment_id = $1",
-      [equipmentID]
-    );
 
     //console.log("upadate wewwwwwwwwwwwwwww");
-    console.log(updatedEquipment.rows[0]);
+    //console.log(updatedEquipment.rows[0]);
 
     equip = await pool.query(
-      "SELECT * FROM equipments_in_locations WHERE equipment_id = $1",
-      [equipmentID]
+      "SELECT * FROM equipments_in_locations WHERE equipment_id = $1 AND location_id = $2",
+      [equipmentID,location_ID]
     );
-    await pool.query(
-      "UPDATE equipments_in_locations SET available = $1 WHERE equipment_id = $2 AND location_id = $3",
+    //console.log(equip.rows[0]);
+    let check=await pool.query(
+      "UPDATE equipments_in_locations SET available = $1 WHERE equipment_id = $2 AND location_id = $3 RETURNING *",
       [equip.rows[0].available + quant, equipmentID, location_ID]
+    );
+    //console.log(check.rows[0])
+
+    const updatedEquipment = await pool.query(
+      `SELECT el.available,e.equipment_id,e.equipment_name,e.image_link,el.borrowed
+      FROM equipments e
+      JOIN equipments_in_locations el
+      ON e.equipment_id=el.equipment_id AND el.location_id = $1
+      WHERE e.equipment_id = $2`,
+      [location_ID,equipmentID]
     );
     //const updatedEquipment=await pool.query("SELECT update_storage($1,$2,$3)",[equipmentID,location_ID,quantity]);
     //console.log(updatedEquipment.rows[0]);
