@@ -8,6 +8,8 @@ const {
   createRequest,
   sendRequesttoInventoryManager,
   showRequestsLabAssistant,
+  showRequestsDeptHead,
+  showSentRequests,
   acceptRequest,
   declineRequest,
   addComment,
@@ -28,6 +30,10 @@ router.post(
 );
 
 router.get("/showrequests/:username", showRequestsLabAssistant);
+
+router.get("/showsentrequests/:username", showSentRequests);
+
+router.get("/showrequestsdepthead",showRequestsDeptHead);
 
 router.get("/getsupervisors/:username", getSupervisors);
 

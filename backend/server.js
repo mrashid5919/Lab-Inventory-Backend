@@ -11,6 +11,7 @@ const equipmentRoute = require("./routes/equipment");
 const storageRoute = require("./routes/storage");
 const requestRoute = require("./routes/request");
 const locationRoute = require("./routes/location");
+const notificationRoute = require("./routes/notification");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/equipments", equipmentRoute);
 app.use("/api/storage", storageRoute);
 app.use("/api/request", requestRoute);
 app.use("/api/adminjobs", locationRoute);
+app.use("/api/notification", notificationRoute);
 
 app.get("/home", (req, res) => {
   res.send("hello world");

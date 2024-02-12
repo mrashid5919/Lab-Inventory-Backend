@@ -107,6 +107,45 @@ const showRequestsSupervisor = async (req, res) => {
   }
 };
 
+const showSentRequests = async (req, res) => {
+  const username = req.params.username;
+  try {
+    const requests = await pool.query(
+      `SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time,l.location_name
+        FROM requests r
+        JOIN request_status rs ON r.req_status = rs.req_status
+        JOIN equipments e ON r.equipment_id = e.equipment_id
+        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+        JOIN locations l ON r.location_id = l.location_id
+        JOIN users u ON r.user_id = u.user_id
+        WHERE u.username = $1;
+        `,
+      [username]
+    );
+    res.status(200).json(requests.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const showRequestsDeptHead = async (req, res) => {
+  try {
+    requests = await pool.query(
+      `SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
+        FROM requests r
+        JOIN request_status rs ON r.req_status = rs.req_status
+        JOIN equipments e ON r.equipment_id = e.equipment_id
+        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+        JOIN users u ON r.user_id = u.user_id
+        WHERE rs.status_name = 'Waiting for Head of Department approval';
+        `
+    );
+    res.status(200).json(requests.rows);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 const acceptRequest = async (req, res) => {
   //console.log("here");
   const reqID = req.params.reqID;
@@ -456,7 +495,7 @@ const forwardRequesttoSupervisor = async (req, res) => {
 };
 
 const cancelForwardRequesttoSupervisor = async (req, res) => {
-  const reqID = req.params.reqID;
+  const reqID = req.params.req_id;
   const username = req.params.username;
   let quant = await pool.query(
     "SELECT quantity FROM requests WHERE req_id=$1",
@@ -712,6 +751,7 @@ const sendRequesttoInventoryManager = async (req, res) => {
 module.exports = {
   createRequest,
   showRequestsLabAssistant,
+  showSentRequests,
   acceptRequest,
   declineRequest,
   addComment,
@@ -723,4 +763,5 @@ module.exports = {
   cancelForwardRequesttoSupervisor,
   forwardRequesttoHead,
   sendRequesttoInventoryManager,
+  showRequestsDeptHead
 };
