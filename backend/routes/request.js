@@ -1,53 +1,55 @@
-const express=require("express");
+const express = require("express");
 
-const pool=require("../db");
+const pool = require("../db");
 
-const router=express.Router();
+const router = express.Router();
 
-const {createRequest,
-    sendRequesttoInventoryManager,
-    showRequestsLabAssistant,
-    showSentRequests,
-    showRequestsDeptHead,
-    acceptRequest,
-    declineRequest,
-    addComment,
-    deleteRequest,
-    forwardRequesttoSupervisor,
-    getSupervisors,
-    selectSupervisors,
-    showRequestsSupervisor,
-    cancelForwardRequesttoSupervisor,
-    forwardRequesttoHead}=require("../controller/requestController");
+const {
+  createRequest,
+  sendRequesttoInventoryManager,
+  showRequestsLabAssistant,
+  acceptRequest,
+  declineRequest,
+  addComment,
+  deleteRequest,
+  forwardRequesttoSupervisor,
+  getSupervisors,
+  selectSupervisors,
+  showRequestsSupervisor,
+  cancelForwardRequesttoSupervisor,
+  forwardRequesttoHead,
+} = require("../controller/requestController");
 
-router.post("/createrequest/:username/:equipmentID",createRequest);
+router.post("/createrequest/:username/:equipmentID", createRequest);
 
-router.post("/sendrequesttoinventorymanager/:username/:equipmentID",sendRequesttoInventoryManager);
+router.post(
+  "/sendrequesttoinventorymanager/:username/:equipmentID",
+  sendRequesttoInventoryManager
+);
 
-router.get("/showsentrequests/:username",showSentRequests);
+router.get("/showrequests/:username", showRequestsLabAssistant);
 
-router.get("/showrequestsdepthead",showRequestsDeptHead);
+router.get("/getsupervisors/:username", getSupervisors);
 
-router.get("/showrequests/:username",showRequestsLabAssistant);
+router.put("/acceptrequest/:reqID/:username", acceptRequest);
 
-router.get("/getsupervisors/:username",getSupervisors);
+router.put("/declinerequest/:reqID/:username", declineRequest);
 
-router.put("/acceptrequest/:reqID/:username",acceptRequest);
+router.post("/addcomment/:reqID/:username", addComment);
 
-router.put("/declinerequest/:reqID/:username",declineRequest);
+router.delete("/deleterequest/:reqID", deleteRequest);
 
-router.post("/addcomment/:reqID/:username",addComment);
+router.put("/forwardrequest/:reqID/:username", forwardRequesttoSupervisor);
 
-router.delete("/deleterequest/:reqID",deleteRequest);
+router.post("/selectsupervisors/:reqID/:username", selectSupervisors);
 
-router.put("/forwardrequest/:reqID/:username",forwardRequesttoSupervisor);
+router.get("/showrequestssupervisor/:username", showRequestsSupervisor);
 
-router.post("/selectsupervisors/:reqID",selectSupervisors);
+router.put(
+  "/cancelforwardrequest/:reqID/:username",
+  cancelForwardRequesttoSupervisor
+);
 
-router.get("/showrequestssupervisor/:username",showRequestsSupervisor);
+router.put("/forwardrequesttohead/:reqID/:username", forwardRequesttoHead);
 
-router.put("/cancelforwardrequest/:reqID/:username",cancelForwardRequesttoSupervisor);
-
-router.put("/forwardrequesttohead/:reqID/:username",forwardRequesttoHead);
-
-module.exports=router;
+module.exports = router;

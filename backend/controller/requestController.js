@@ -42,37 +42,6 @@ const createRequest = async (req, res) => {
   }
 };
 
-const showSentRequests = async (req, res) => {
-  const username = req.params.username;
-  try {
-    // locationID = await pool.query(
-    //   `SELECT ul.location_id
-    //     FROM users_in_locations ul
-    //     JOIN users u
-    //     ON ul.user_id=u.user_id
-    //     WHERE u.username=$1;`,
-    //   [username]
-    // );
-    // locationID = locationID.rows[0].location_id;
-
-    requests = await pool.query(
-      `SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time,l.location_name
-        FROM requests r
-        JOIN request_status rs ON r.req_status = rs.req_status
-        JOIN equipments e ON r.equipment_id = e.equipment_id
-        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
-        JOIN locations l ON r.location_id = l.location_id
-        JOIN users u ON r.user_id = u.user_id
-        WHERE u.username = $1;
-        `,
-      [username]
-    );
-    res.status(200).json(requests.rows);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
 const showRequestsLabAssistant = async (req, res) => {
   const username = req.params.username;
   try {
@@ -137,26 +106,6 @@ const showRequestsSupervisor = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
-const showRequestsDeptHead = async (req, res) => {
-  try {
-    requests = await pool.query(
-      `SELECT e.equipment_name, e.permit, el.available, r.req_id, u.username, r.quantity, rs.status_name, r.req_time
-        FROM requests r
-        JOIN request_status rs ON r.req_status = rs.req_status
-        JOIN equipments e ON r.equipment_id = e.equipment_id
-        JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
-        JOIN users u ON r.user_id = u.user_id
-        WHERE rs.status_name = 'Waiting for Head of Department approval';
-        `
-    );
-    res.status(200).json(requests.rows);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-
 
 const acceptRequest = async (req, res) => {
   //console.log("here");
@@ -591,6 +540,7 @@ const cancelForwardRequesttoSupervisor = async (req, res) => {
 const selectSupervisors = async (req, res) => {
   const reqID = req.params.reqID;
   const supervisors = req.body.supervisors;
+  const username = req.params.username;
   //console.log(supervisors);
   try {
     for (i = 0; i < supervisors.length; i++) {
@@ -599,6 +549,7 @@ const selectSupervisors = async (req, res) => {
         "INSERT INTO request_supervisors (req_id, supervisor_id) VALUES ($1, $2)",
         [reqID, userID]
       );
+      //console.log("here");
     }
     if (supervisors == null) {
       const reqID = req.params.reqID;
@@ -656,6 +607,7 @@ const selectSupervisors = async (req, res) => {
         ]
       );
     }
+    //console.log("here");
     locationID = await pool.query(
       `SELECT ul.location_id
             FROM users_in_locations ul
@@ -664,6 +616,7 @@ const selectSupervisors = async (req, res) => {
             WHERE u.username=$1;`,
       [username]
     );
+    //console.log(locationID.rows[0]);
     locationID = locationID.rows[0].location_id;
 
     request = await pool.query(
@@ -758,9 +711,7 @@ const sendRequesttoInventoryManager = async (req, res) => {
 
 module.exports = {
   createRequest,
-  showSentRequests,
   showRequestsLabAssistant,
-  showRequestsDeptHead,
   acceptRequest,
   declineRequest,
   addComment,
