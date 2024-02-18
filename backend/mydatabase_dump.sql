@@ -70,6 +70,78 @@ $$;
 ALTER FUNCTION public.update_storage(p_equipment_id integer, p_location_id integer, p_quantity numeric) OWNER TO postgres;
 
 --
+-- Name: due_statuses; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.due_statuses (
+    due_status integer NOT NULL,
+    status_name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.due_statuses OWNER TO postgres;
+
+--
+-- Name: due_statuses_due_status_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.due_statuses_due_status_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.due_statuses_due_status_seq OWNER TO postgres;
+
+--
+-- Name: due_statuses_due_status_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.due_statuses_due_status_seq OWNED BY public.due_statuses.due_status;
+
+
+--
+-- Name: dues; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.dues (
+    due_id integer NOT NULL,
+    req_id integer,
+    alloter_id integer,
+    receiver_id integer,
+    due_status integer,
+    due_date date
+);
+
+
+ALTER TABLE public.dues OWNER TO postgres;
+
+--
+-- Name: dues_due_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.dues_due_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.dues_due_id_seq OWNER TO postgres;
+
+--
+-- Name: dues_due_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.dues_due_id_seq OWNED BY public.dues.due_id;
+
+
+--
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -311,7 +383,9 @@ CREATE TABLE public.requests (
     verdictor integer,
     lab_assistant integer,
     lab_supervisor integer,
-    inventory_manager integer
+    inventory_manager integer,
+    due_assigned integer,
+    pickup_date date
 );
 
 
@@ -407,6 +481,20 @@ CREATE TABLE public.viewed_notification (
 ALTER TABLE public.viewed_notification OWNER TO postgres;
 
 --
+-- Name: due_statuses due_status; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.due_statuses ALTER COLUMN due_status SET DEFAULT nextval('public.due_statuses_due_status_seq'::regclass);
+
+
+--
+-- Name: dues due_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dues ALTER COLUMN due_id SET DEFAULT nextval('public.dues_due_id_seq'::regclass);
+
+
+--
 -- Name: equipments equipment_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -463,15 +551,33 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 
 --
+-- Data for Name: due_statuses; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.due_statuses (due_status, status_name) FROM stdin;
+1	Pending
+\.
+
+
+--
+-- Data for Name: dues; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date) FROM stdin;
+1	34	7	\N	1	2024-02-20
+\.
+
+
+--
 -- Data for Name: equipments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
-1	Breadboard	Hardware	90	Circuit building equipment	25	85	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
-4	AtMega32	Hardware	500	Microcontroller device	12	68	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
-6	Iphone	Software	50000	iphone	3	47	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
-2	Arduino	Hardware	100	Microcontroller	11	160	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
-5	LED	Hardware	5	Light	1	99	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
+5	LED	Hardware	5	Light	2	448	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
+6	Iphone	Software	50000	iphone	3	77	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
+2	Arduino	Hardware	100	Microcontroller	10	140	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
+1	Breadboard	Hardware	90	Circuit building equipment	7	145	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
+4	AtMega32	Hardware	500	Microcontroller device	14	96	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
 \.
 
 
@@ -480,17 +586,16 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 --
 
 COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
-4	1	10	0
-4	2	20	2
-4	3	52	4
-2	2	60	11
-5	1	97	0
-6	1	47	0
-6	2	20	3
-2	1	100	\N
-1	1	22	210
-1	2	30	30
-5	2	2	1
+2	1	100	0
+1	1	52	0
+2	2	40	10
+1	2	93	7
+5	1	345	0
+5	2	103	2
+4	2	36	14
+6	1	65	0
+6	2	12	3
+4	1	60	0
 \.
 
 
@@ -528,9 +633,13 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 --
 
 COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, comment_time) FROM stdin;
-1	2	7	Sorry some our product was damaged	2024-02-08
-2	10	7	Collect on 12 feb	2024-02-11
-3	15	7	Take it from lab	2024-02-11
+3	26	7	accepted\n	2024-02-12
+4	31	8	Accepted	2024-02-12
+5	34	7	accepted	2024-02-12
+6	36	8		2024-02-12
+7	37	18	Accepted	2024-02-12
+8	38	7	accept	2024-02-12
+9	41	8	Accepted	2024-02-12
 \.
 
 
@@ -553,11 +662,15 @@ COPY public.request_status (req_status, status_name) FROM stdin;
 --
 
 COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
-2	7
-3	7
-3	8
-8	8
-9	8
+28	8
+28	9
+32	8
+31	8
+35	8
+36	8
+37	8
+37	18
+41	8
 \.
 
 
@@ -565,21 +678,25 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 -- Data for Name: requests; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor, inventory_manager) FROM stdin;
-4	1	2	2	2	2024-02-09	1	\N	\N	\N	\N
-8	1	2	6	2	2024-02-10	5	\N	7	8	\N
-9	1	2	6	1	2024-02-11	4	\N	7	\N	\N
-10	1	2	1	1	2024-02-11	2	7	7	\N	\N
-2	1	2	1	10	2024-02-08	2	8	7	8	\N
-5	1	2	1	4	2024-02-09	2	7	7	\N	\N
-3	1	2	1	5	2024-02-09	4	8	7	8	\N
-7	11	3	4	2	2024-02-10	1	\N	\N	\N	\N
-6	11	3	4	2	2024-02-10	1	\N	\N	\N	\N
-12	7	1	4	1	2024-02-11	2	4	\N	\N	4
-13	7	1	5	3	2024-02-11	2	4	\N	\N	4
-14	7	1	6	3	2024-02-11	2	4	\N	\N	4
-11	7	1	1	5	2024-02-11	2	4	\N	\N	4
-15	11	2	5	1	2024-02-11	2	7	7	\N	\N
+COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_time, req_status, verdictor, lab_assistant, lab_supervisor, inventory_manager, due_assigned, pickup_date) FROM stdin;
+26	11	2	1	5	2024-02-12	2	7	7	\N	\N	\N	\N
+27	7	1	2	50	2024-02-12	2	4	\N	\N	4	\N	\N
+28	11	2	2	2	2024-02-12	3	8	7	8	\N	\N	\N
+30	7	1	6	10	2024-02-12	2	4	\N	\N	4	\N	\N
+29	7	1	4	50	2024-02-12	2	4	\N	\N	4	\N	\N
+31	11	2	4	2	2024-02-12	2	8	7	8	\N	\N	\N
+32	11	2	6	1	2024-02-12	5	\N	7	8	\N	\N	\N
+33	7	1	5	5	2024-02-12	2	4	\N	\N	4	\N	\N
+34	1	2	5	2	2024-02-12	2	7	7	\N	\N	\N	\N
+35	1	2	6	2	2024-02-12	5	\N	7	8	\N	\N	\N
+36	1	2	4	5	2024-02-12	2	8	7	8	\N	\N	\N
+37	1	2	2	10	2024-02-12	2	18	7	18	\N	\N	\N
+38	11	2	1	2	2024-02-12	2	7	7	\N	\N	\N	\N
+39	7	1	5	100	2024-02-12	2	4	\N	\N	4	\N	\N
+40	7	1	5	10	2024-02-12	6	\N	\N	\N	\N	\N	\N
+25	7	1	1	100	2024-02-12	2	4	\N	\N	4	\N	\N
+41	1	2	4	7	2024-02-12	2	8	7	8	\N	\N	\N
+42	7	1	6	5	2024-02-12	2	4	\N	\N	4	\N	\N
 \.
 
 
@@ -599,10 +716,12 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 11	1905103	Mayesha	Rashid	mayesha1599@gmail.com	$2b$10$I274TLSaz6H5tSjkHZW6xeBlcfDXf/yRzY6Ga9aciWYStebs20lBG	Student	48795249	1
 12	rimpi	Rimpi	Reyaz	rimpi@gmail.com	$2b$10$Rz//YNIuylh9OqXL.A.WL.tN27cXIE2zbAEtLu4P76Ko2Xun1trw6	Teacher	5268289562	1
 13	krv	Kowsic	Roy	kowshic@gmail.com	$2b$10$STEJA6pxC040lp07TIi4RuXoYefwig07OiZnPJdPY2FJ9cHpo/Seq	Teacher	7285250	1
-14	nazmul	Nazmul	Hasan	nazmul@gmail.com	$2b$10$xasXMjPqF2LSlOSxO1mckODM3TQDeUQl6WJ2haTVvPmgRAXLGK7Oa	Super Admin	27962906852	0
-15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Deparment Head	52095720	0
-16	minu	Minu	Islam	minu@gmail.com	$2b$10$jUPLHVSaAFfMVTXlaVmM5uiY5kNFt7AoGtJZ4/TbN9Kzx3vSZojui	Lab Assistant	341234324	0
-18	amin	Amin	Hasan	amin@gmail.com	$2b$10$UbIlKAQtdn4Jp6pw/pNevuOx5uIc.94TRh.FuWYnBwp6nzeYPvT8y	Inventory Manager	93805580543890	0
+14	nazmul	Nazmul	Hasan	nazmul@gmail.com	$2b$10$xasXMjPqF2LSlOSxO1mckODM3TQDeUQl6WJ2haTVvPmgRAXLGK7Oa	Super Admin	27962906852	1
+15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Deparment Head	52095720	1
+16	minu	Minu	Islam	minu@gmail.com	$2b$10$jUPLHVSaAFfMVTXlaVmM5uiY5kNFt7AoGtJZ4/TbN9Kzx3vSZojui	Lab Assistant	341234324	1
+17	samia	Samia	Noor	samia@gmail.com	$2b$10$eXqLqLfDoRyLAhfq1hljWuOJP6pBdu.EK7ss5Ros6CNbdRepqR1bO	Lab Assistant	5282578025	1
+18	rrd	Rayhan	Rashed	rayhan@gmail.com	$2b$10$hvNjP2uwuiGm72zPqvz6o.EMbbSz8bdkHN.3fPn.IF5Skql.C8rpy	Teacher	5632465437	1
+19	asif	Asif	Haque	asif@gmail.com	$2b$10$ICJhsByjceWjHtjB/K2f4uwKELmVRS0aqGlMNTomgOZpanNnzA0vu	Lab Assistant	528780587	1
 \.
 
 
@@ -611,13 +730,17 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 --
 
 COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
-4	1	inventory manager
 7	2	Lab Assistant
 8	2	Teacher
 9	2	Teacher
-10	3	Lab Assistant
 12	3	Teacher
 13	3	Teacher
+16	2	Lab Assistant
+10	2	Lab Assistant
+4	1	inventory manager
+17	2	Lab Assistant
+19	3	Lab Assistant
+18	3	Teacher
 \.
 
 
@@ -626,22 +749,21 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 --
 
 COPY public.viewed_notification (user_id, viewed_notification_count, total_notification_count) FROM stdin;
-1	0	0
-2	0	0
-4	0	0
-5	0	0
-7	0	0
-8	0	0
-9	0	0
-10	0	0
-11	0	0
-12	0	0
-13	0	0
-14	0	0
-15	0	0
-16	0	0
-18	0	0
 \.
+
+
+--
+-- Name: due_statuses_due_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 1, true);
+
+
+--
+-- Name: dues_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.dues_due_id_seq', 1, true);
 
 
 --
@@ -676,7 +798,7 @@ SELECT pg_catalog.setval('public.notifications_notification_id_seq', 1, false);
 -- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 3, true);
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 9, true);
 
 
 --
@@ -690,14 +812,30 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 15, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 42, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 18, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 19, true);
+
+
+--
+-- Name: due_statuses due_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.due_statuses
+    ADD CONSTRAINT due_statuses_pkey PRIMARY KEY (due_status);
+
+
+--
+-- Name: dues dues_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dues
+    ADD CONSTRAINT dues_pkey PRIMARY KEY (due_id);
 
 
 --
@@ -794,6 +932,30 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
+-- Name: dues dues_alloter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dues
+    ADD CONSTRAINT dues_alloter_id_fkey FOREIGN KEY (alloter_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: dues dues_due_status_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dues
+    ADD CONSTRAINT dues_due_status_fkey FOREIGN KEY (due_status) REFERENCES public.due_statuses(due_status);
+
+
+--
+-- Name: dues dues_req_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.dues
+    ADD CONSTRAINT dues_req_id_fkey FOREIGN KEY (req_id) REFERENCES public.requests(req_id);
 
 
 --
