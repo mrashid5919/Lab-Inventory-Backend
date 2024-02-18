@@ -33,4 +33,39 @@ const createDue = async (req, res) => {
 
 };
 
-module.exports={createDue}
+const viewDuesStudent = async (req, res) => {
+    const username=req.params.username;
+    try{
+        const user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+        const dues=await pool.query(`SELECT d.due_id,d.due_date,ds.status_name,e.equipment_name,l.location_name,r.quantity from dues d
+        join requests r on d.req_id=r.req_id
+        join equipments e on r.equipment_id=e.equipment_id
+        join locations l on r.location_id=l.location_id
+        join due_statuses ds on d.due_status=ds.due_status
+        where r.user_id=$1`,[user_id.rows[0].user_id]);
+        res.status(200).json(dues.rows);
+    }catch(err){
+        res.status(400).json({ error: err.message });
+    }
+};
+
+const viewDuesLocation = async (req, res) => {
+    const username=req.params.username;
+    try{
+        const dues=await pool.query(`SELECT d.due_id,d.due_date,ds.status_name,e.equipment_name,u1.username,r.quantity from dues d
+        join requests r on d.req_id=r.req_id
+        join equipments e on r.equipment_id=e.equipment_id
+        join users_in_locations ul on r.location_id=ul.location_id
+        join due_statuses ds on d.due_status=ds.due_status
+        join users u1 on r.user_id=u1.user_id
+        join users u on ul.user_id=u.user_id
+        where u.username=$1`,[username]);
+        res.status(200).json(dues.rows);
+    }catch(err){
+        res.status(400).json({ error: err.message });
+    }
+};
+
+module.exports={createDue,
+    viewDuesStudent,
+    viewDuesLocation}
