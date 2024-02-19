@@ -113,7 +113,8 @@ CREATE TABLE public.dues (
     alloter_id integer,
     receiver_id integer,
     due_status integer,
-    due_date date
+    due_date date,
+    issue_date date
 );
 
 
@@ -563,8 +564,8 @@ COPY public.due_statuses (due_status, status_name) FROM stdin;
 -- Data for Name: dues; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date) FROM stdin;
-1	34	7	\N	1	2024-02-20
+COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date, issue_date) FROM stdin;
+2	34	7	\N	1	2024-02-21	2024-02-19
 \.
 
 
@@ -763,7 +764,7 @@ SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 1, true);
 -- Name: dues_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.dues_due_id_seq', 1, true);
+SELECT pg_catalog.setval('public.dues_due_id_seq', 2, true);
 
 
 --

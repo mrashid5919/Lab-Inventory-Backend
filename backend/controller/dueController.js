@@ -9,6 +9,8 @@ const createDue = async (req, res) => {
     const reqID=req.params.reqID;
     const dueDate=req.body.dueDate;
 
+    const dueExist=await pool.query("SELECT * from dues where req_id=$1",[reqID]);
+
     if(!dueDate){
         return res.status(400).json({ error: "Due date is required" });
     }
@@ -20,13 +22,20 @@ const createDue = async (req, res) => {
         return res.status(400).json({ error: "Due date cannot be in the past" });
     }
     try{
-        const user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
-        const duestatus=await pool.query("SELECT * from due_statuses where status_name='Pending'");
-        // let quantity=request.rows[0].quantity;
-        // let equipment_id=request.rows[0].equipment_id;
-        // let location_id=request.rows[0].location_id;
-        const due=await pool.query("INSERT INTO dues(req_id,due_date,alloter_id,due_status) values($1,$2,$3,$4) RETURNING *",[reqID,dueDateObj,user_id.rows[0].user_id,duestatus.rows[0].due_status]);
-        res.status(200).json(due.rows[0]);
+        if(dueExist.rows.length==0){
+            const user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+            const duestatus=await pool.query("SELECT * from due_statuses where status_name='Pending'");
+            // let quantity=request.rows[0].quantity;
+            // let equipment_id=request.rows[0].equipment_id;
+            // let location_id=request.rows[0].location_id;
+            const due=await pool.query("INSERT INTO dues(req_id,due_date,alloter_id,due_status,issue_date) values($1,$2,$3,$4,CURRENT_DATE) RETURNING *",[reqID,dueDateObj,user_id.rows[0].user_id,duestatus.rows[0].due_status]);
+            res.status(200).json(due.rows[0]);
+        }
+        else
+        {
+            const due=await pool.query("UPDATE dues SET due_date=$1 where req_id=$2 RETURNING *",[dueDateObj,reqID]);
+            res.status(200).json(due.rows[0]);
+        }
     }catch(err){
         res.status(400).json({ error: err.message });
     }
@@ -37,7 +46,7 @@ const viewDuesStudent = async (req, res) => {
     const username=req.params.username;
     try{
         const user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
-        const dues=await pool.query(`SELECT d.due_id,d.due_date,ds.status_name,e.equipment_name,l.location_name,r.quantity from dues d
+        const dues=await pool.query(`SELECT d.due_id,d.due_date,d.issue_date,ds.status_name,e.equipment_name,l.location_name,r.quantity from dues d
         join requests r on d.req_id=r.req_id
         join equipments e on r.equipment_id=e.equipment_id
         join locations l on r.location_id=l.location_id
@@ -52,7 +61,7 @@ const viewDuesStudent = async (req, res) => {
 const viewDuesLocation = async (req, res) => {
     const username=req.params.username;
     try{
-        const dues=await pool.query(`SELECT d.due_id,d.due_date,ds.status_name,e.equipment_name,u1.username,r.quantity from dues d
+        const dues=await pool.query(`SELECT d.due_id,d.due_date,d.issue_date,ds.status_name,e.equipment_name,u1.username,r.quantity from dues d
         join requests r on d.req_id=r.req_id
         join equipments e on r.equipment_id=e.equipment_id
         join users_in_locations ul on r.location_id=ul.location_id
