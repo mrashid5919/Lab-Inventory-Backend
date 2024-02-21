@@ -16,6 +16,25 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: update_notification_count(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.update_notification_count() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    UPDATE viewed_notification
+    SET total_notification_count = total_notification_count + 1
+    WHERE user_id = NEW.receiver_id; -- Use receiver_id from the new row in notification table
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.update_notification_count() OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -619,11 +638,11 @@ COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date,
 --
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
-2	Arduino	Hardware	100	Microcontroller	10	140	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
 4	AtMega32	Hardware	500	Microcontroller device	14	96	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
 5	LED	Hardware	5	Light	9	441	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
 1	Breadboard	Hardware	90	Circuit building equipment	12	140	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 6	Iphone	Software	50000	iphone	8	72	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
+2	Arduino	Hardware	100	Microcontroller	12	138	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
 \.
 
 
@@ -634,7 +653,6 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
 2	1	100	0
 1	1	52	0
-2	2	40	10
 5	1	345	0
 4	2	36	14
 4	1	60	0
@@ -642,6 +660,7 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 1	2	88	12
 6	1	35	0
 6	2	37	8
+2	2	38	12
 \.
 
 
@@ -700,6 +719,8 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 15	15	tareqmahmood	Teacher	You have been forwarded a request.	2024-02-21 22:42:19.456027+06	2	51
 16	7	tareqmahmood	Teacher	Your request has been forwarded to the Head of Department.	2024-02-21 22:42:19.461617+06	2	51
 17	11	tareqmahmood	Teacher	Your request has been forwarded to the Head of Department.	2024-02-21 22:42:19.462749+06	2	51
+18	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-22 02:23:16.148189+06	2	53
+19	11	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-22 02:23:16.151992+06	2	53
 \.
 
 
@@ -755,6 +776,7 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 52	8
 51	8
 50	8
+53	8
 \.
 
 
@@ -791,6 +813,7 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 50	11	2	6	1	2024-02-21	4	\N	7	\N	\N	\N	\N
 52	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
 51	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
+53	11	2	2	2	2024-02-22	4	\N	7	\N	\N	\N	\N
 \.
 
 
@@ -843,6 +866,22 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 --
 
 COPY public.viewed_notification (user_id, viewed_notification_count, total_notification_count) FROM stdin;
+1	3	3
+2	0	0
+4	0	0
+5	0	0
+7	1	1
+9	0	0
+12	0	0
+13	0	0
+14	0	0
+15	1	1
+16	0	0
+17	0	0
+18	0	0
+19	0	0
+8	5	6
+11	7	8
 \.
 
 
@@ -892,7 +931,7 @@ SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 4, t
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 17, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 19, true);
 
 
 --
@@ -913,7 +952,7 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 52, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 53, true);
 
 
 --
@@ -1041,6 +1080,13 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_username_key UNIQUE (username);
+
+
+--
+-- Name: notifications after_notification_insert; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER after_notification_insert AFTER INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION public.update_notification_count();
 
 
 --
