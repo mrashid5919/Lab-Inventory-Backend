@@ -351,15 +351,26 @@ const addComment = async (req, res) => {
   const reqID = req.params.reqID;
   const username = req.params.username;
   const comment = req.body.comment;
-  let userID = await pool.query("SELECT user_id FROM users WHERE username=$1", [
+  let user = await pool.query("SELECT user_id,role FROM users WHERE username=$1", [
     username,
   ]);
-  userID = userID.rows[0].user_id;
+  //userID = userID.rows[0].user_id;
   try {
     const request = await pool.query(
       "INSERT INTO request_comments (req_id, commenter_id, comment, comment_time) VALUES ($1, $2, $3, CURRENT_DATE) RETURNING *",
-      [reqID, userID, comment]
+      [reqID, user.rows[0].user_id, comment]
     );
+    const notif_type=await pool.query("SELECT notification_type from notification_types where type_name='Requests'");
+    let requ=await pool.query("SELECT user_id from requests where req_id=$1",[reqID]);
+    const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[requ.rows[0].user_id,username,user.rows[0].role,request.rows[0].comment,notif_type.rows[0].notification_type,request.rows[0].req_id]);
+    if(user.rows[0].role!="Lab Assistant"){
+      const la_notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[request.rows[0].lab_assistant,username,user.rows[0].role,"Your request has been accepted.",notif_type.rows[0].notification_type,request.rows[0].req_id]);
+      if(user.rows[0].role=="Department Head")
+      {
+         const t_notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[request.rows[0].lab_supervisor,username,user.rows[0].role,"Your request has been accepted.",notif_type.rows[0].notification_type,request.rows[0].req_id]);
+      }
+    }
+    
 
     res.status(200).json(request.rows[0]);
   } catch (error) {
@@ -646,6 +657,16 @@ const selectSupervisors = async (req, res) => {
         ]
       );
     }
+    else
+    {
+      const notif_type=await pool.query("SELECT notification_type from notification_types where type_name='Requests'");
+      const requ=await pool.query("SELECT user_id from requests where req_id=$1",[reqID]);
+      for (i = 0; i < supervisors.length; i++) {
+        //let supervisorID = supervisors[i];
+        const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[supervisors[i],username,"Lab Assistant","You have been forwarded a request.",notif_type.rows[0].notification_type,reqID]);
+      }
+      const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[requ.rows[0].user_id,username,"Lab Assistant","Your request has been assigned to a supervisor.",notif_type.rows[0].notification_type,reqID]);
+    }
     //console.log("here");
     locationID = await pool.query(
       `SELECT ul.location_id
@@ -703,6 +724,16 @@ const forwardRequesttoHead = async (req, res) => {
         `,
       [userID]
     );
+
+    let notif_type=await pool.query("SELECT notification_type from notification_types where type_name='Requests'");
+    let requ=await pool.query("SELECT * from requests where req_id=$1",[reqID]);
+    let headID=await pool.query("SELECT user_id from users where role='Department Head'");
+    //console.log(headID.rows[0].user_id);
+    const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[headID.rows[0].user_id,username,"Teacher","You have been forwarded a request.",notif_type.rows[0].notification_type,reqID]);
+    //console.log(notification.rows[0]);
+    const notification_la=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[requ.rows[0].lab_assistant,username,"Teacher","Your request has been forwarded to the Head of Department.",notif_type.rows[0].notification_type,reqID]);
+    const notification_st=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[requ.rows[0].user_id,username,"Teacher","Your request has been forwarded to the Head of Department.",notif_type.rows[0].notification_type,reqID]);
+
     //console.log(requests.rows.length)
     res.status(200).json(requests.rows);
   } catch (error) {

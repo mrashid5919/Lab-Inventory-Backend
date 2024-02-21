@@ -619,11 +619,11 @@ COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date,
 --
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
-5	LED	Hardware	5	Light	2	448	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
-6	Iphone	Software	50000	iphone	3	77	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
 2	Arduino	Hardware	100	Microcontroller	10	140	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
-1	Breadboard	Hardware	90	Circuit building equipment	7	145	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 4	AtMega32	Hardware	500	Microcontroller device	14	96	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
+5	LED	Hardware	5	Light	9	441	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
+1	Breadboard	Hardware	90	Circuit building equipment	12	140	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
+6	Iphone	Software	50000	iphone	8	72	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
 \.
 
 
@@ -635,13 +635,13 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 2	1	100	0
 1	1	52	0
 2	2	40	10
-1	2	93	7
 5	1	345	0
-5	2	103	2
 4	2	36	14
-6	1	65	0
-6	2	12	3
 4	1	60	0
+5	2	96	9
+1	2	88	12
+6	1	35	0
+6	2	37	8
 \.
 
 
@@ -685,6 +685,21 @@ COPY public.notification_types (notification_type, type_name) FROM stdin;
 COPY public.notifications (notification_id, receiver_id, sender_name, sender_role, notification, notification_time, notification_type, type_id) FROM stdin;
 1	1	raju	Lab Assistant	A due has been updated	2024-02-21 11:42:52.757204+06	1	3
 2	11	raju	Lab Assistant	A due has been updated	2024-02-21 11:44:51.081872+06	1	4
+3	1	raju	Lab Assistant	Your request has accepted. Collect it from the lab	2024-02-21 21:11:16.383899+06	2	46
+4	11	raju	Lab Assistant	Collect it from lab 1	2024-02-21 21:12:31.422639+06	2	47
+5	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-21 22:13:31.728383+06	2	44
+6	1	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-21 22:13:31.732377+06	2	44
+7	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-21 22:25:39.85293+06	2	48
+8	11	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-21 22:25:39.854833+06	2	48
+9	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-21 22:40:11.936863+06	2	52
+10	11	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-21 22:40:11.939786+06	2	52
+11	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-21 22:40:19.685196+06	2	51
+12	11	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-21 22:40:19.68639+06	2	51
+13	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-21 22:40:23.713672+06	2	50
+14	11	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-21 22:40:23.714858+06	2	50
+15	15	tareqmahmood	Teacher	You have been forwarded a request.	2024-02-21 22:42:19.456027+06	2	51
+16	7	tareqmahmood	Teacher	Your request has been forwarded to the Head of Department.	2024-02-21 22:42:19.461617+06	2	51
+17	11	tareqmahmood	Teacher	Your request has been forwarded to the Head of Department.	2024-02-21 22:42:19.462749+06	2	51
 \.
 
 
@@ -700,6 +715,10 @@ COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, com
 7	37	18	Accepted	2024-02-12
 8	38	7	accept	2024-02-12
 9	41	8	Accepted	2024-02-12
+10	43	7		2024-02-21
+11	45	7	Your request has accepted. Collect it from the lab	2024-02-21
+12	46	7	Your request has accepted. Collect it from the lab	2024-02-21
+13	47	7	Collect it from lab 1	2024-02-21
 \.
 
 
@@ -731,6 +750,11 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 37	8
 37	18
 41	8
+44	8
+48	8
+52	8
+51	8
+50	8
 \.
 
 
@@ -757,6 +781,16 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 25	7	1	1	100	2024-02-12	2	4	\N	\N	4	\N	\N
 41	1	2	4	7	2024-02-12	2	8	7	8	\N	\N	\N
 42	7	1	6	5	2024-02-12	2	4	\N	\N	4	\N	\N
+43	11	2	1	3	2024-02-21	2	7	7	\N	\N	\N	\N
+45	1	2	5	2	2024-02-21	2	7	7	\N	\N	\N	\N
+46	1	2	5	5	2024-02-21	2	7	7	\N	\N	\N	\N
+44	1	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
+47	11	2	1	2	2024-02-21	4	7	7	\N	\N	\N	\N
+48	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
+49	7	1	6	30	2024-02-21	2	4	\N	\N	4	\N	\N
+50	11	2	6	1	2024-02-21	4	\N	7	\N	\N	\N	\N
+52	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
+51	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
 \.
 
 
@@ -777,11 +811,11 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 12	rimpi	Rimpi	Reyaz	rimpi@gmail.com	$2b$10$Rz//YNIuylh9OqXL.A.WL.tN27cXIE2zbAEtLu4P76Ko2Xun1trw6	Teacher	5268289562	1
 13	krv	Kowsic	Roy	kowshic@gmail.com	$2b$10$STEJA6pxC040lp07TIi4RuXoYefwig07OiZnPJdPY2FJ9cHpo/Seq	Teacher	7285250	1
 14	nazmul	Nazmul	Hasan	nazmul@gmail.com	$2b$10$xasXMjPqF2LSlOSxO1mckODM3TQDeUQl6WJ2haTVvPmgRAXLGK7Oa	Super Admin	27962906852	1
-15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Deparment Head	52095720	1
 16	minu	Minu	Islam	minu@gmail.com	$2b$10$jUPLHVSaAFfMVTXlaVmM5uiY5kNFt7AoGtJZ4/TbN9Kzx3vSZojui	Lab Assistant	341234324	1
 17	samia	Samia	Noor	samia@gmail.com	$2b$10$eXqLqLfDoRyLAhfq1hljWuOJP6pBdu.EK7ss5Ros6CNbdRepqR1bO	Lab Assistant	5282578025	1
 18	rrd	Rayhan	Rashed	rayhan@gmail.com	$2b$10$hvNjP2uwuiGm72zPqvz6o.EMbbSz8bdkHN.3fPn.IF5Skql.C8rpy	Teacher	5632465437	1
 19	asif	Asif	Haque	asif@gmail.com	$2b$10$ICJhsByjceWjHtjB/K2f4uwKELmVRS0aqGlMNTomgOZpanNnzA0vu	Lab Assistant	528780587	1
+15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Department Head	52095720	1
 \.
 
 
@@ -858,14 +892,14 @@ SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 4, t
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 2, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 17, true);
 
 
 --
 -- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 9, true);
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 13, true);
 
 
 --
@@ -879,7 +913,7 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 42, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 52, true);
 
 
 --
