@@ -6,7 +6,7 @@ const router = express.Router();
 
 const { showNotifications,selectIndividualNotification } = require("../controller/notificationController");
 
-router.get("/shownotifications/:user_id", showNotifications);
+router.get("/shownotifications/:username", showNotifications);
 
 router.get("/selectindividualnotification/:notification_id", selectIndividualNotification)
 
