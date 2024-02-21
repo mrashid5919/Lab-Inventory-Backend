@@ -9,6 +9,8 @@ const createDue = async (req, res) => {
     const reqID=req.params.reqID;
     const dueDate=req.body.dueDate;
 
+
+
     const dueExist=await pool.query("SELECT * from dues where req_id=$1",[reqID]);
 
     if(!dueDate){
@@ -21,6 +23,9 @@ const createDue = async (req, res) => {
     if(dueDateObj<currentDate){
         return res.status(400).json({ error: "Due date cannot be in the past" });
     }
+    const user_role=await pool.query("SELECT role FROM users WHERE username=$1",[username]);
+    const requ=await pool.query("SELECT * from requests where req_id=$1",[reqID]);
+    const notif_type=await pool.query("SELECT * from notification_types where type_name='Dues'");
     try{
         if(dueExist.rows.length==0){
             const user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
@@ -29,13 +34,22 @@ const createDue = async (req, res) => {
             // let equipment_id=request.rows[0].equipment_id;
             // let location_id=request.rows[0].location_id;
             const due=await pool.query("INSERT INTO dues(req_id,due_date,alloter_id,due_status,issue_date) values($1,$2,$3,$4,CURRENT_DATE) RETURNING *",[reqID,dueDateObj,user_id.rows[0].user_id,duestatus.rows[0].due_status]);
+            //const d=await pool.query("SELECT due_id from dues where req_id=$1",[reqID]);
+            //console.log(due.rows[0]);
+            const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[requ.rows[0].user_id,username,user_role.rows[0].role,'A due has been updated',notif_type.rows[0].notification_type,due.rows[0].due_id]);
+            
             res.status(200).json(due.rows[0]);
         }
         else
         {
             const due=await pool.query("UPDATE dues SET due_date=$1 where req_id=$2 RETURNING *",[dueDateObj,reqID]);
+            //const d=await pool.query("SELECT due_id from dues where req_id=$1",[reqID]);
+            //console.log(due.rows[0]);
+            const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[requ.rows[0].user_id,username,user_role.rows[0].role,'A due has been updated',notif_type.rows[0].notification_type,due.rows[0].due_id]);
+            //console.log(due.rows[0]);
             res.status(200).json(due.rows[0]);
         }
+        
     }catch(err){
         res.status(400).json({ error: err.message });
     }

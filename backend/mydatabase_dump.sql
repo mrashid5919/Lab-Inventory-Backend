@@ -249,6 +249,40 @@ ALTER SEQUENCE public.locations_location_id_seq OWNED BY public.locations.locati
 
 
 --
+-- Name: notification_types; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.notification_types (
+    notification_type integer NOT NULL,
+    type_name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.notification_types OWNER TO postgres;
+
+--
+-- Name: notification_types_notification_type_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.notification_types_notification_type_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.notification_types_notification_type_seq OWNER TO postgres;
+
+--
+-- Name: notification_types_notification_type_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.notification_types_notification_type_seq OWNED BY public.notification_types.notification_type;
+
+
+--
 -- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -258,7 +292,9 @@ CREATE TABLE public.notifications (
     sender_name text,
     sender_role text,
     notification text,
-    notification_time date
+    notification_time timestamp with time zone,
+    notification_type integer,
+    type_id integer
 );
 
 
@@ -517,6 +553,13 @@ ALTER TABLE ONLY public.locations ALTER COLUMN location_id SET DEFAULT nextval('
 
 
 --
+-- Name: notification_types notification_type; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notification_types ALTER COLUMN notification_type SET DEFAULT nextval('public.notification_types_notification_type_seq'::regclass);
+
+
+--
 -- Name: notifications notification_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -566,6 +609,8 @@ COPY public.due_statuses (due_status, status_name) FROM stdin;
 
 COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date, issue_date) FROM stdin;
 2	34	7	\N	1	2024-02-21	2024-02-19
+3	41	7	\N	1	2024-02-29	2024-02-21
+4	38	7	\N	1	2024-03-01	2024-02-21
 \.
 
 
@@ -622,10 +667,24 @@ COPY public.locations (location_id, location_name, room_no, location_type) FROM 
 
 
 --
+-- Data for Name: notification_types; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.notification_types (notification_type, type_name) FROM stdin;
+1	Dues
+2	Requests
+3	Storage
+4	Clearance
+\.
+
+
+--
 -- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.notifications (notification_id, receiver_id, sender_name, sender_role, notification, notification_time) FROM stdin;
+COPY public.notifications (notification_id, receiver_id, sender_name, sender_role, notification, notification_time, notification_type, type_id) FROM stdin;
+1	1	raju	Lab Assistant	A due has been updated	2024-02-21 11:42:52.757204+06	1	3
+2	11	raju	Lab Assistant	A due has been updated	2024-02-21 11:44:51.081872+06	1	4
 \.
 
 
@@ -764,7 +823,7 @@ SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 1, true);
 -- Name: dues_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.dues_due_id_seq', 2, true);
+SELECT pg_catalog.setval('public.dues_due_id_seq', 4, true);
 
 
 --
@@ -789,10 +848,17 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 
 
 --
+-- Name: notification_types_notification_type_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 4, true);
+
+
+--
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 1, false);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 2, true);
 
 
 --
@@ -869,6 +935,14 @@ ALTER TABLE ONLY public.location_types
 
 ALTER TABLE ONLY public.locations
     ADD CONSTRAINT locations_pkey PRIMARY KEY (location_id);
+
+
+--
+-- Name: notification_types notification_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notification_types
+    ADD CONSTRAINT notification_types_pkey PRIMARY KEY (notification_type);
 
 
 --
@@ -973,6 +1047,14 @@ ALTER TABLE ONLY public.equipments_in_locations
 
 ALTER TABLE ONLY public.equipments_in_locations
     ADD CONSTRAINT equipments_in_locations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(location_id);
+
+
+--
+-- Name: notifications notifications_notification_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_notification_type_fkey FOREIGN KEY (notification_type) REFERENCES public.notification_types(notification_type);
 
 
 --
