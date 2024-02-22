@@ -881,7 +881,7 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 18	0	0
 19	0	0
 8	5	6
-11	7	8
+11	8	8
 \.
 
 

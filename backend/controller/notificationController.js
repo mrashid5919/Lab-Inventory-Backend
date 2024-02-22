@@ -5,6 +5,7 @@ const showNotifications = async (req,res) => {
   user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
   try {
     const notifications = await pool.query("SELECT * FROM notifications where receiver_id=$1",[user_id.rows[0].user_id]);
+    const update_count=await pool.query("UPDATE viewed_notification SET viewed_notification_count=total_notification_count WHERE user_id=$1",[user_id.rows[0].user_id]);
     res.status(200).json(notifications.rows);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -22,4 +23,16 @@ const selectIndividualNotification = async (req,res) => {
   }
 }
 
-module.exports={showNotifications,selectIndividualNotification};
+const getUnseenNotificationCount = async (req,res) => {
+  username=req.params.username;
+  user_id=await pool.query("SELECT user_id FROM users WHERE username=$1",[username]);
+  try{
+    const count=await pool.query("SELECT total_notification_count-viewed_notification_count AS unseen_notification_count FROM viewed_notification WHERE user_id=$1",[user_id.rows[0].user_id]);
+    res.status(200).json(count.rows[0]);
+  }
+  catch(error){
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports={showNotifications,selectIndividualNotification,getUnseenNotificationCount};
