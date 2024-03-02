@@ -9,11 +9,17 @@ const {
   assignLocation,
   showUsers,
   getLabs,
+  seePendingRegistrationsAll,
+  acceptUser,
+  rejectUser
 } = require("../controller/locationController");
 
 router.get("/seependingregistrations", seePendingRegistrations);
+router.get("/seependingregistrationsall",seePendingRegistrationsAll);
 router.post("/assignlocation/:user_id", assignLocation);
 router.get("/showusers", showUsers);
 router.get("/getlabs", getLabs);
+router.post("/acceptuser/:user_id",acceptUser);
+router.post("/rejectuser/:user_id",rejectUser);
 
 module.exports = router;

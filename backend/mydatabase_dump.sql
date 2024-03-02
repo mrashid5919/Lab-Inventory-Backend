@@ -89,6 +89,81 @@ $$;
 ALTER FUNCTION public.update_storage(p_equipment_id integer, p_location_id integer, p_quantity numeric) OWNER TO postgres;
 
 --
+-- Name: clearance_request; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.clearance_request (
+    clearance_req_id integer NOT NULL,
+    user_id integer,
+    level integer,
+    term integer,
+    clearance_status integer,
+    request_date date,
+    forward_date date,
+    verdict_date date,
+    verdictor integer
+);
+
+
+ALTER TABLE public.clearance_request OWNER TO postgres;
+
+--
+-- Name: clearance_request_clearace_req_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.clearance_request_clearace_req_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.clearance_request_clearace_req_id_seq OWNER TO postgres;
+
+--
+-- Name: clearance_request_clearace_req_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.clearance_request_clearace_req_id_seq OWNED BY public.clearance_request.clearance_req_id;
+
+
+--
+-- Name: clearance_request_status; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.clearance_request_status (
+    clearance_status integer NOT NULL,
+    status_name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.clearance_request_status OWNER TO postgres;
+
+--
+-- Name: clearance_request_status_clearance_status_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.clearance_request_status_clearance_status_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.clearance_request_status_clearance_status_seq OWNER TO postgres;
+
+--
+-- Name: clearance_request_status_clearance_status_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.clearance_request_status_clearance_status_seq OWNED BY public.clearance_request_status.clearance_status;
+
+
+--
 -- Name: due_statuses; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -133,7 +208,10 @@ CREATE TABLE public.dues (
     receiver_id integer,
     due_status integer,
     due_date date,
-    issue_date date
+    issue_date date,
+    clear_date date,
+    quantity integer,
+    damage_quantity integer
 );
 
 
@@ -537,6 +615,20 @@ CREATE TABLE public.viewed_notification (
 ALTER TABLE public.viewed_notification OWNER TO postgres;
 
 --
+-- Name: clearance_request clearance_req_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.clearance_request ALTER COLUMN clearance_req_id SET DEFAULT nextval('public.clearance_request_clearace_req_id_seq'::regclass);
+
+
+--
+-- Name: clearance_request_status clearance_status; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.clearance_request_status ALTER COLUMN clearance_status SET DEFAULT nextval('public.clearance_request_status_clearance_status_seq'::regclass);
+
+
+--
 -- Name: due_statuses due_status; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -614,11 +706,31 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 
 --
+-- Data for Name: clearance_request; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.clearance_request (clearance_req_id, user_id, level, term, clearance_status, request_date, forward_date, verdict_date, verdictor) FROM stdin;
+4	11	4	1	1	2024-02-27	\N	\N	\N
+\.
+
+
+--
+-- Data for Name: clearance_request_status; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.clearance_request_status (clearance_status, status_name) FROM stdin;
+1	Waiting for Superadmin Approval
+\.
+
+
+--
 -- Data for Name: due_statuses; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.due_statuses (due_status, status_name) FROM stdin;
 1	Pending
+2	Cleared
+3	LostOrDamaged
 \.
 
 
@@ -626,10 +738,10 @@ COPY public.due_statuses (due_status, status_name) FROM stdin;
 -- Data for Name: dues; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date, issue_date) FROM stdin;
-2	34	7	\N	1	2024-02-21	2024-02-19
-3	41	7	\N	1	2024-02-29	2024-02-21
-4	38	7	\N	1	2024-03-01	2024-02-21
+COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date, issue_date, clear_date, quantity, damage_quantity) FROM stdin;
+2	34	7	\N	1	2024-02-21	2024-02-19	\N	2	0
+3	41	7	7	2	2024-02-29	2024-02-21	2024-02-25	7	0
+4	38	7	\N	3	2024-03-01	2024-02-21	\N	2	2
 \.
 
 
@@ -638,11 +750,11 @@ COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date,
 --
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
-4	AtMega32	Hardware	500	Microcontroller device	14	96	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
 5	LED	Hardware	5	Light	9	441	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
 1	Breadboard	Hardware	90	Circuit building equipment	12	140	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 6	Iphone	Software	50000	iphone	8	72	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
 2	Arduino	Hardware	100	Microcontroller	12	138	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
+4	AtMega32	Hardware	500	Microcontroller device	7	103	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
 \.
 
 
@@ -654,13 +766,13 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 2	1	100	0
 1	1	52	0
 5	1	345	0
-4	2	36	14
 4	1	60	0
 5	2	96	9
 1	2	88	12
 6	1	35	0
 6	2	37	8
 2	2	38	12
+4	2	43	7
 \.
 
 
@@ -721,6 +833,11 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 17	11	tareqmahmood	Teacher	Your request has been forwarded to the Head of Department.	2024-02-21 22:42:19.462749+06	2	51
 18	8	raju	Lab Assistant	You have been forwarded a request.	2024-02-22 02:23:16.148189+06	2	53
 19	11	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-02-22 02:23:16.151992+06	2	53
+20	1	raju	Lab Assistant	A due has been cleared	2024-02-25 23:38:39.809118+06	1	3
+21	7	1905091	Student	\N	2024-02-26 19:56:40.899753+06	1	4
+22	7	1905091	Student	I have lost 1 item	2024-02-26 19:58:10.068953+06	1	4
+23	7	1905091	Student	I have lost 1 item	2024-02-26 20:14:53.938042+06	1	4
+24	14	1905103	Student	A clearance request has been sent	2024-02-27 12:59:20.583966+06	4	\N
 \.
 
 
@@ -839,6 +956,13 @@ COPY public.users (user_id, username, first_name, last_name, email, password, ro
 18	rrd	Rayhan	Rashed	rayhan@gmail.com	$2b$10$hvNjP2uwuiGm72zPqvz6o.EMbbSz8bdkHN.3fPn.IF5Skql.C8rpy	Teacher	5632465437	1
 19	asif	Asif	Haque	asif@gmail.com	$2b$10$ICJhsByjceWjHtjB/K2f4uwKELmVRS0aqGlMNTomgOZpanNnzA0vu	Lab Assistant	528780587	1
 15	mmn	Mahmuda	Naznin	mmn@gmail.com	$2b$10$PH1lV/ciXVYgRrCbTHiKYumgcj4mPI8HYdU7py6h9Y54mEs1EBzAO	Department Head	52095720	1
+20	abcd	Abcd	Efgh	abcd@gmail.com	$2b$10$0MOkOK3N4tHNnYZYTYGR0ufpUkQo3ujWPu1raooVA0Ayy4MTkFjQW	Teacher	6259324828	3
+21	1409053	Amina	Islam	amina@gmail.com	$2b$10$poJ3W2Ae57bWlxSPhHUzveqeE4cwMQPbi8wnQGWLt9m.YAMKm9Y/G	Student	235670169501	2
+22	1905066	Abir	Muhtasim	abir@gmail.com	$2b$10$gU6Y4FOF5NrgQtNqmlZXBesseVqzZQ3DmCDZ45JdSyoFEBfsxuToa	Student	85234950	1
+23	badrul	Badrul	Alam	badrul@gmail.com	$2b$10$sS8SIdCj4OcVOUY6AOhc/euPgsMoFnF///ZnBZzOFgdqy9i0ikbwK	Lab Assistant	264754920	3
+25	785629	mapla	islam	mapla@gmail.com	$2b$10$0PopS/Nu8ARXgsF5WauoTeGs9q/FR2mEzXevsSa6/NXgtFsnmEk9K	Student	64238959835	1
+24	hanif	Hanif	Rahman	hanif@gmail.com	$2b$10$D9ReZTPCdlrRGUcDwFkhq.UX7VCY8ilvgfYqUIcZVy5mHj0dqTSyq	Lab Assistant	5624709	1
+26	hislam	hamim	islam	hamim@gmail.com	$2b$10$eVy4pVIvO/wB3sDQyB2xIu.jU7eZixrafr4jFjFkJ5UkygjlUfHRa	Lab Assistant	2563270528	1
 \.
 
 
@@ -858,6 +982,8 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 17	2	Lab Assistant
 19	3	Lab Assistant
 18	3	Teacher
+24	2	Lab Assistant
+26	2	Lab Assistant
 \.
 
 
@@ -866,15 +992,12 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 --
 
 COPY public.viewed_notification (user_id, viewed_notification_count, total_notification_count) FROM stdin;
-1	3	3
 2	0	0
 4	0	0
 5	0	0
-7	1	1
 9	0	0
 12	0	0
 13	0	0
-14	0	0
 15	1	1
 16	0	0
 17	0	0
@@ -882,14 +1005,38 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 19	0	0
 8	5	6
 11	8	8
+7	1	4
+14	0	1
+1	4	4
+20	0	0
+21	0	0
+22	0	0
+23	0	0
+24	0	0
+25	0	0
+26	0	0
 \.
+
+
+--
+-- Name: clearance_request_clearace_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.clearance_request_clearace_req_id_seq', 4, true);
+
+
+--
+-- Name: clearance_request_status_clearance_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.clearance_request_status_clearance_status_seq', 1, true);
 
 
 --
 -- Name: due_statuses_due_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 1, true);
+SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 3, true);
 
 
 --
@@ -931,7 +1078,7 @@ SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 4, t
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 19, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 24, true);
 
 
 --
@@ -959,7 +1106,23 @@ SELECT pg_catalog.setval('public.requests_req_id_seq', 53, true);
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 19, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 26, true);
+
+
+--
+-- Name: clearance_request clearance_request_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.clearance_request
+    ADD CONSTRAINT clearance_request_pkey PRIMARY KEY (clearance_req_id);
+
+
+--
+-- Name: clearance_request_status clearance_request_status_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.clearance_request_status
+    ADD CONSTRAINT clearance_request_status_pkey PRIMARY KEY (clearance_status);
 
 
 --
@@ -1087,6 +1250,22 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE TRIGGER after_notification_insert AFTER INSERT ON public.notifications FOR EACH ROW EXECUTE FUNCTION public.update_notification_count();
+
+
+--
+-- Name: clearance_request clearance_request_clearance_status_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.clearance_request
+    ADD CONSTRAINT clearance_request_clearance_status_fkey FOREIGN KEY (clearance_status) REFERENCES public.clearance_request_status(clearance_status);
+
+
+--
+-- Name: clearance_request clearance_request_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.clearance_request
+    ADD CONSTRAINT clearance_request_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
 
 --

@@ -98,8 +98,9 @@ const signUpUser = async (req, res) => {
     const token = createToken(newUser.rows[0].user_id);
     const username = newUser.rows[0].username;
     const role = newUser.rows[0].role;
+    const assigned=newUser.rows[0].assigned;
 
-    res.status(200).json({ username, token, role });
+    res.status(200).json({ username, token, role, assigned });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -112,8 +113,9 @@ const loginUser = async (req, res) => {
     const user = await checkAuthenticity(username, password);
     const token = createToken(user.rows[0].user_id); //the _id is added when the user was first created
     const role = user.rows[0].role;
+    const assigned=user.rows[0].assigned;
 
-    res.status(200).json({ username, token, role });
+    res.status(200).json({ username, token, role,assigned });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
