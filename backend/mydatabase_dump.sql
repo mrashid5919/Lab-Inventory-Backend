@@ -346,6 +346,48 @@ ALTER SEQUENCE public.locations_location_id_seq OWNED BY public.locations.locati
 
 
 --
+-- Name: monetary_dues; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.monetary_dues (
+    monetary_due_id integer NOT NULL,
+    req_id integer,
+    user_id integer,
+    creater_id integer,
+    receiver_id integer,
+    amount integer,
+    due_status integer,
+    due_date date,
+    issue_date date,
+    clear_date date
+);
+
+
+ALTER TABLE public.monetary_dues OWNER TO postgres;
+
+--
+-- Name: monetary_dues_monetary_due_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.monetary_dues_monetary_due_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.monetary_dues_monetary_due_id_seq OWNER TO postgres;
+
+--
+-- Name: monetary_dues_monetary_due_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.monetary_dues_monetary_due_id_seq OWNED BY public.monetary_dues.monetary_due_id;
+
+
+--
 -- Name: notification_types; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -664,6 +706,13 @@ ALTER TABLE ONLY public.locations ALTER COLUMN location_id SET DEFAULT nextval('
 
 
 --
+-- Name: monetary_dues monetary_due_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.monetary_dues ALTER COLUMN monetary_due_id SET DEFAULT nextval('public.monetary_dues_monetary_due_id_seq'::regclass);
+
+
+--
 -- Name: notification_types notification_type; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -798,6 +847,15 @@ COPY public.locations (location_id, location_name, room_no, location_type) FROM 
 
 
 --
+-- Data for Name: monetary_dues; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.monetary_dues (monetary_due_id, req_id, user_id, creater_id, receiver_id, amount, due_status, due_date, issue_date, clear_date) FROM stdin;
+1	38	11	7	7	100	2	2024-03-07	2024-03-02	2024-03-03
+\.
+
+
+--
 -- Data for Name: notification_types; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -806,6 +864,8 @@ COPY public.notification_types (notification_type, type_name) FROM stdin;
 2	Requests
 3	Storage
 4	Clearance
+5	LostorDamaged
+6	MonetaryDues
 \.
 
 
@@ -838,6 +898,8 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 22	7	1905091	Student	I have lost 1 item	2024-02-26 19:58:10.068953+06	1	4
 23	7	1905091	Student	I have lost 1 item	2024-02-26 20:14:53.938042+06	1	4
 24	14	1905103	Student	A clearance request has been sent	2024-02-27 12:59:20.583966+06	4	\N
+25	11	raju	Lab Assistant	A monetary due has been created	2024-03-02 22:27:46.265352+06	6	1
+26	11	raju	Lab Assistant	A monetary due has been cleared	2024-03-03 01:02:05.517299+06	6	1
 \.
 
 
@@ -1004,7 +1066,6 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 18	0	0
 19	0	0
 8	5	6
-11	8	8
 7	1	4
 14	0	1
 1	4	4
@@ -1015,6 +1076,7 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 24	0	0
 25	0	0
 26	0	0
+11	8	10
 \.
 
 
@@ -1068,17 +1130,24 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 
 
 --
+-- Name: monetary_dues_monetary_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.monetary_dues_monetary_due_id_seq', 1, true);
+
+
+--
 -- Name: notification_types_notification_type_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 4, true);
+SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 6, true);
 
 
 --
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 24, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 26, true);
 
 
 --
@@ -1171,6 +1240,14 @@ ALTER TABLE ONLY public.location_types
 
 ALTER TABLE ONLY public.locations
     ADD CONSTRAINT locations_pkey PRIMARY KEY (location_id);
+
+
+--
+-- Name: monetary_dues monetary_dues_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.monetary_dues
+    ADD CONSTRAINT monetary_dues_pkey PRIMARY KEY (monetary_due_id);
 
 
 --
@@ -1306,6 +1383,30 @@ ALTER TABLE ONLY public.equipments_in_locations
 
 ALTER TABLE ONLY public.equipments_in_locations
     ADD CONSTRAINT equipments_in_locations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(location_id);
+
+
+--
+-- Name: monetary_dues monetary_dues_due_status_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.monetary_dues
+    ADD CONSTRAINT monetary_dues_due_status_fkey FOREIGN KEY (due_status) REFERENCES public.due_statuses(due_status);
+
+
+--
+-- Name: monetary_dues monetary_dues_req_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.monetary_dues
+    ADD CONSTRAINT monetary_dues_req_id_fkey FOREIGN KEY (req_id) REFERENCES public.requests(req_id);
+
+
+--
+-- Name: monetary_dues monetary_dues_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.monetary_dues
+    ADD CONSTRAINT monetary_dues_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
 
 --
