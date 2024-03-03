@@ -18,13 +18,16 @@ MonetaryDuesLocation,
 clearMonetaryDue,
 createClearanceRequest,
 checkClearanceExistence,
-checkClearanceRequests } = require("../controller/dueController");
+checkClearanceRequests,
+acceptClearance,
+rejectClearance,
+finalCallforClearance } = require("../controller/dueController");
 
 router.post("/createdue/:username/:reqID", createDue);
 router.get("/viewduesstudent/:username", viewDuesStudent);
 router.get("/viewdueslocation/:username", viewDuesLocation);
 router.post("/cleardue/:username/:dueID", clearDue);
-router.get("/checkclearanceeligibility/:userID", checkClearanceEligibility);
+router.get("/checkclearanceeligibility/:username", checkClearanceEligibility);
 router.post("/reportlostordamaged/:username/:dueID", reportLostorDamaged);
 router.get("/viewlostordamaged/:username",viewLostorDamaged);
 router.get("/showestimatedue/:username/:dueID", showEstimateDue);
@@ -35,4 +38,8 @@ router.post("/clearmonetarydue/:username/:dueID", clearMonetaryDue);
 router.post("/createclearancerequest/:username", createClearanceRequest);
 router.get("/checkclearanceexistence/:username", checkClearanceExistence);
 router.get("/checkclearancerequests", checkClearanceRequests);
+router.post("/acceptclearance/:username/:clearance_req_id", acceptClearance);
+router.post("/rejectclearance/:username/:clearance_req_id", rejectClearance);
+router.post("/finalcallforclearance/:username/:clearance_req_id", finalCallforClearance);
+
 module.exports = router;

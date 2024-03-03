@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.2 (Ubuntu 16.2-1.pgdg22.04+1)
--- Dumped by pg_dump version 16.2 (Ubuntu 16.2-1.pgdg22.04+1)
+-- Dumped from database version 16.1
+-- Dumped by pg_dump version 16.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -761,7 +761,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 --
 
 COPY public.clearance_request (clearance_req_id, user_id, level, term, clearance_status, request_date, forward_date, verdict_date, verdictor) FROM stdin;
-4	11	4	1	1	2024-02-27	\N	\N	\N
+4	11	4	1	3	2024-02-27	\N	2024-03-03	\N
+5	2	4	2	4	2024-03-03	2024-03-03	2024-03-03	\N
 \.
 
 
@@ -771,6 +772,9 @@ COPY public.clearance_request (clearance_req_id, user_id, level, term, clearance
 
 COPY public.clearance_request_status (clearance_status, status_name) FROM stdin;
 1	Waiting for Superadmin Approval
+2	Waiting for Department Head Signature
+3	Rejected
+4	Ready to collect
 \.
 
 
@@ -934,6 +938,12 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 50	7	1905091	Student	haraisi	2024-03-03 12:28:55.128572+06	1	8
 51	1	raju	Lab Assistant	A monetary due has been created	2024-03-03 12:29:52.021227+06	6	7
 52	1	raju	Lab Assistant	A monetary due has been cleared	2024-03-03 12:30:16.154204+06	6	7
+53	14	1905099	Student	A clearance request has been sent	2024-03-03 19:32:01.356592+06	4	5
+54	2	nazmul	Super Admin	Your clearance is waiting for department head's signature	2024-03-03 19:33:54.47449+06	4	5
+56	11	nazmul	Super Admin	Your clearance is rejected. Check whether you have any dues or level-term is uneligble	2024-03-03 19:41:11.246078+06	4	4
+57	2	nazmul	Super Admin	Your clearance is waiting for department head's signature	2024-03-03 19:49:45.943862+06	4	5
+58	11	nazmul	Super Admin	Your clearance is rejected. Check whether you have any dues or level-term is uneligble	2024-03-03 19:51:30.31382+06	4	4
+59	2	nazmul	Super Admin	Your clearance is cleared. Collect from superadmin	2024-03-03 19:53:07.608245+06	4	5
 \.
 
 
@@ -1095,7 +1105,6 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 --
 
 COPY public.viewed_notification (user_id, viewed_notification_count, total_notification_count) FROM stdin;
-2	0	0
 4	0	0
 5	0	0
 9	0	0
@@ -1106,7 +1115,6 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 17	0	0
 18	0	0
 19	0	0
-14	0	1
 20	0	0
 21	0	0
 22	0	0
@@ -1114,10 +1122,12 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 24	0	0
 25	0	0
 26	0	0
-11	18	22
 8	5	7
 7	1	10
 1	9	10
+14	0	2
+11	24	25
+2	3	3
 \.
 
 
@@ -1125,14 +1135,14 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 -- Name: clearance_request_clearace_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.clearance_request_clearace_req_id_seq', 4, true);
+SELECT pg_catalog.setval('public.clearance_request_clearace_req_id_seq', 5, true);
 
 
 --
 -- Name: clearance_request_status_clearance_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.clearance_request_status_clearance_status_seq', 1, true);
+SELECT pg_catalog.setval('public.clearance_request_status_clearance_status_seq', 4, true);
 
 
 --
@@ -1188,7 +1198,7 @@ SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 6, t
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 52, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 59, true);
 
 
 --

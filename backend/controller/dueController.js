@@ -254,22 +254,24 @@ const checkClearanceEligibility = async (req, res) => {
   const username = req.params.username;
   try {
     const duestatus = await pool.query(
-      "SELECT * from due_statuses where status_name='Pending'"
+      "SELECT * from due_statuses where status_name='Cleared'"
     );
+    //console.log(duestatus.rows[0].due_status, username);
     let dues = await pool.query(
       `SELECT d.due_id from DUES d
         join requests r on d.req_id=r.req_id
         join users u on u.user_id=r.user_id
-        where d.due_status=$1 and u.username=$2
+        where d.due_status!=$1 and u.username=$2
         `,
       [duestatus.rows[0].due_status, username]
     );
+    //console.log(dues.rows);
     dues = dues.rows;
     let monetary_dues = await pool.query(
       `SELECT m.monetary_due_id from monetary_dues m
         join requests r on m.req_id=r.req_id
         join users u on u.user_id=r.user_id
-        where m.due_status=$1 and u.username=$2
+        where m.due_status!=$1 and u.username=$2
         `,
       [duestatus.rows[0].due_status, username]
     );
@@ -550,9 +552,10 @@ const checkClearanceExistence = async (req, res) => {
       "SELECT user_id FROM users WHERE username=$1",
       [username]
     );
+    const clearance_req_status=await pool.query("SELECT * from clearance_request_status where status_name='Rejected'");
     const clearances = await pool.query(
-      "SELECT * from clearance_request where user_id=$1",
-      [user_id.rows[0].user_id]
+      "SELECT * from clearance_request where user_id=$1 and clearance_status!=$2",
+      [user_id.rows[0].user_id,clearance_req_status.rows[0].clearance_status]
     );
     res.status(200).json(clearances.rows);
   } catch (err) {
@@ -567,6 +570,51 @@ const checkClearanceRequests = async (req, res) => {
     );
     res.status(200).json(clearances.rows);
   } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+const acceptClearance = async (req, res) => {
+  const clearance_req_id=req.params.clearance_req_id;
+  const username=req.params.username;
+  try{
+    const clearance_status=await pool.query("SELECT * from clearance_request_status where status_name='Waiting for Department Head Signature'");
+    const clearance=await pool.query("UPDATE clearance_request SET clearance_status=$1,forward_date=CURRENT_DATE where clearance_req_id=$2 RETURNING *",[clearance_status.rows[0].clearance_status,clearance_req_id]);
+    const notif_type=await pool.query("SELECT * from notification_types where type_name='Clearance'");
+    const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[clearance.rows[0].user_id,username,"Super Admin","Your clearance is waiting for department head's signature",notif_type.rows[0].notification_type,clearance_req_id]);
+    res.status(200).json(clearance.rows[0]);
+  }
+  catch(err){
+    res.status(400).json({ error: err.message });
+  }
+};
+
+const rejectClearance = async (req, res) => {
+  const clearance_req_id=req.params.clearance_req_id;
+  const username=req.params.username;
+  try{
+    const clearance_status=await pool.query("SELECT * from clearance_request_status where status_name='Rejected'");
+    const clearance=await pool.query("UPDATE clearance_request SET clearance_status=$1,verdict_date=CURRENT_DATE where clearance_req_id=$2 RETURNING *",[clearance_status.rows[0].clearance_status,clearance_req_id]);
+    const notif_type=await pool.query("SELECT * from notification_types where type_name='Clearance'");
+    const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[clearance.rows[0].user_id,username,"Super Admin","Your clearance is rejected. Check whether you have any dues or level-term is uneligble",notif_type.rows[0].notification_type,clearance_req_id]);
+    res.status(200).json(clearance.rows[0]);
+  }
+  catch(err){
+    res.status(400).json({ error: err.message });
+  }
+};
+
+const finalCallforClearance = async (req, res) => {
+  const clearance_req_id=req.params.clearance_req_id;
+  const username=req.params.username;
+  try{
+    const clearance_status=await pool.query("SELECT * from clearance_request_status where status_name='Ready to collect'");
+    const clearance=await pool.query("UPDATE clearance_request SET clearance_status=$1,verdict_date=CURRENT_DATE where clearance_req_id=$2 RETURNING *",[clearance_status.rows[0].clearance_status,clearance_req_id]);
+    const notif_type=await pool.query("SELECT * from notification_types where type_name='Clearance'");
+    const notification=await pool.query("INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",[clearance.rows[0].user_id,username,"Super Admin","Your clearance is cleared. Collect from superadmin",notif_type.rows[0].notification_type,clearance_req_id]);
+    res.status(200).json(clearance.rows[0]);
+  }
+  catch(err){
     res.status(400).json({ error: err.message });
   }
 };
@@ -587,4 +635,7 @@ module.exports = {
   clearMonetaryDue,
   viewMonetaryDueStudent,
   MonetaryDuesLocation,
+  acceptClearance,
+  rejectClearance,
+  finalCallforClearance
 };

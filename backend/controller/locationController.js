@@ -14,7 +14,7 @@ const seePendingRegistrations = async (req, res) => {
 const seePendingRegistrationsAll = async (req,res) => {
   try {
     const pendingRegistrations = await pool.query(
-      "SELECT user_id,first_name,last_name,role,email FROM users WHERE assigned=0;"
+      "SELECT user_id,username,first_name,last_name,role,email FROM users WHERE assigned=0;"
     );
     res.status(200).json(pendingRegistrations.rows);
   } catch (error) {
