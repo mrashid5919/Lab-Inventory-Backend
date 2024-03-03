@@ -129,6 +129,70 @@ const rejectUser = async (req,res) => {
   }
 }
 
+const showEquipments = async (req,res) => {
+  try{
+    const equipments=await pool.query(`SELECT e.equipment_id,e.equipment_name,e.type,e.cost,el.available,el.borrowed,l.location_name
+    FROM equipments e
+    JOIN equipments_in_locations el
+    ON e.equipment_id=el.equipment_id
+    JOIN locations l
+    ON l.location_id=el.location_id`);
+    res.status(200).json(equipments.rows);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const showRequests = async (req,res) => {
+  try{
+    const requests=await pool.query(`SELECT e.equipment_name, r.req_id, u.username, r.quantity, rs.status_name, r.req_time, l.location_name, u2.username as verdictor, u2.role as verdictor_role 
+    FROM requests r
+    JOIN request_status rs ON r.req_status = rs.req_status
+    JOIN equipments e ON r.equipment_id = e.equipment_id
+    JOIN equipments_in_locations el ON r.location_id = el.location_id AND r.equipment_id = el.equipment_id
+    JOIN locations l ON r.location_id = l.location_id
+    JOIN users u ON r.user_id = u.user_id
+    JOIN users u2 ON r.verdictor=u2.user_id`);
+    res.status(200).json(requests.rows);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const showDues = async (req,res) => {
+  try{
+    const dues=await pool.query(`SELECT e.equipment_name, u.username, d.due_date, d.issue_date, d.clear_date, d.quantity, d.damage_quantity, d.due_id, ds.status_name, u2.username as verdictor, l.location_name
+    FROM dues d
+    JOIN due_statuses ds ON d.due_status = ds.due_status
+    JOIN requests r ON d.req_id = r.req_id
+    JOIN locations l ON r.location_id = l.location_id
+    JOIN equipments e ON r.equipment_id = e.equipment_id
+    JOIN users u ON r.user_id = u.user_id
+    JOIN users u2 ON d.alloter_id=u2.user_id`);
+    res.status(200).json(dues.rows);
+  }catch(error){
+    res.status(400).json({ error: error.message });
+  }
+}
+
+const showMonetaryDues = async (req,res) => {
+  try{
+    const monetaryDues=await pool.query(`SELECT m.monetary_due_id,m.issue_date,m.due_date,m.clear_date,m.amount,ds.status_name,l.location_name,u.username,m.damage_quantity,e.equipment_name,u2.username as verdictor from monetary_dues m
+    join requests r on m.req_id=r.req_id
+    join equipments e on r.equipment_id=e.equipment_id
+    join locations l on r.location_id=l.location_id
+    join users u on m.user_id=u.user_id
+    join users u2 on m.creater_id=u2.user_id
+    join due_statuses ds on m.due_status=ds.due_status
+    `
+    );
+    res.status(200).json(monetaryDues.rows);
+  }
+  catch(error){
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   seePendingRegistrations,
   assignLocation,
@@ -136,5 +200,9 @@ module.exports = {
   getLabs,
   seePendingRegistrationsAll,
   acceptUser,
-  rejectUser
+  rejectUser,
+  showEquipments,
+  showRequests,
+  showDues,
+  showMonetaryDues
 };
