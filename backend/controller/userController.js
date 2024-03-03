@@ -94,7 +94,6 @@ const checkAuthenticity = async (username, password) => {
 const signUpUser = async (req, res) => {
   try {
     const newUser = await checkValidity(req);
-
     const token = createToken(newUser.rows[0].user_id);
     const username = newUser.rows[0].username;
     const role = newUser.rows[0].role;

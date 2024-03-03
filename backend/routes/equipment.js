@@ -14,6 +14,7 @@ const {
   getLocations,
   getInventories,
   showInventoryEquipments,
+  getEquipmentQuantity
 } = require("../controller/equipmentController");
 
 router.get("/", showEquipmentsStudent);
@@ -31,5 +32,7 @@ router.get("/equipment/:id", getIndividualEquipment);
 router.get("/equipment/:id/locations", getLocations);
 
 router.get("/equipment/:id/inventories", getInventories);
+
+router.get("/equipment/:equipment_name/:username", getEquipmentQuantity);
 
 module.exports = router;

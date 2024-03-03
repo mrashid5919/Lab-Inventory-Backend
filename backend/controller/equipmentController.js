@@ -109,7 +109,7 @@ const addNewEquipment = async (req, res) => {
   }
   const quant = parseInt(quantity, 10);
   let NewEquipment = await pool.query(
-    "INSERT INTO equipments (equipment_name, type, cost, descript, borrowed, available, demand, permit,image_link) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
+    "INSERT INTO equipments (equipment_name, type, cost, descript, borrowed, available, demand, permit,image_link) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
     [name, category, cost, description, 0, quant, 1, permit,image]
   );
   await pool.query(
@@ -151,6 +151,22 @@ const getInventories = async (req, res) => {
   }
 };
 
+const getEquipmentQuantity = async (req, res) => {
+  username=req.params.username; 
+  equipment_name=req.params.equipment_name;
+  try {
+    const user=await pool.query("SELECT * FROM users WHERE username=$1",[username]);
+    const location_id=await pool.query(`SELECT location_id FROM users_in_locations WHERE user_id=$1`,[user.rows[0].user_id]);
+    const equipment=await pool.query(`SELECT e.equipment_id,el.available FROM equipments e
+    JOIN equipments_in_locations el
+    ON e.equipment_id=el.equipment_id
+    WHERE e.equipment_name=$1 AND el.location_id=$2`,[equipment_name,location_id.rows[0].location_id]);
+    res.status(200).json(equipment.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   showEquipments,
   showEquipmentsManager,
@@ -160,5 +176,6 @@ module.exports = {
   getIndividualEquipment,
   getLocations,
   showInventoryEquipments,
-  getInventories
+  getInventories,
+  getEquipmentQuantity
 };

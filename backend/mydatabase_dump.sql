@@ -592,6 +592,82 @@ ALTER SEQUENCE public.requests_req_id_seq OWNED BY public.requests.req_id;
 
 
 --
+-- Name: requisition_statuses; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.requisition_statuses (
+    req_status integer NOT NULL,
+    status_name character varying(100) NOT NULL
+);
+
+
+ALTER TABLE public.requisition_statuses OWNER TO postgres;
+
+--
+-- Name: requisition_statuses_req_status_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.requisition_statuses_req_status_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.requisition_statuses_req_status_seq OWNER TO postgres;
+
+--
+-- Name: requisition_statuses_req_status_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.requisition_statuses_req_status_seq OWNED BY public.requisition_statuses.req_status;
+
+
+--
+-- Name: requisitions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.requisitions (
+    requisition_id integer NOT NULL,
+    user_id integer,
+    equipment_name character varying(100),
+    quantity integer,
+    req_status integer,
+    req_date date,
+    approve_date date,
+    verdict_date date,
+    location_id integer,
+    verdictor integer
+);
+
+
+ALTER TABLE public.requisitions OWNER TO postgres;
+
+--
+-- Name: requisitions_requisition_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.requisitions_requisition_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.requisitions_requisition_id_seq OWNER TO postgres;
+
+--
+-- Name: requisitions_requisition_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.requisitions_requisition_id_seq OWNED BY public.requisitions.requisition_id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -750,6 +826,20 @@ ALTER TABLE ONLY public.requests ALTER COLUMN req_id SET DEFAULT nextval('public
 
 
 --
+-- Name: requisition_statuses req_status; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requisition_statuses ALTER COLUMN req_status SET DEFAULT nextval('public.requisition_statuses_req_status_seq'::regclass);
+
+
+--
+-- Name: requisitions requisition_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requisitions ALTER COLUMN requisition_id SET DEFAULT nextval('public.requisitions_requisition_id_seq'::regclass);
+
+
+--
 -- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -814,6 +904,8 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 5	LED	Hardware	5	Light	14	436	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
 1	Breadboard	Hardware	90	Circuit building equipment	17	135	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 4	AtMega32	Hardware	500	Microcontroller device	11	99	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
+8	Servo Motor	Hardware	200	A motor that can rotate 360 degrees.	0	70	1	1	https://www.electronicwings.com/storage/PlatformSection/TopicContent/134/icon/Servo%20Motor.jpg
+9	Atmega Burner	Hardware	150	Burner used to burn code to Atmega	0	50	1	1	https://rudius.net/oz2m/ngnb/usbasp_programmer.jpg
 \.
 
 
@@ -832,6 +924,10 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 5	2	91	14
 1	2	83	17
 4	2	39	11
+8	1	40	0
+8	2	30	0
+9	1	40	0
+9	2	10	0
 \.
 
 
@@ -878,6 +974,7 @@ COPY public.notification_types (notification_type, type_name) FROM stdin;
 4	Clearance
 5	LostorDamaged
 6	MonetaryDues
+7	Requisition
 \.
 
 
@@ -944,6 +1041,19 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 57	2	nazmul	Super Admin	Your clearance is waiting for department head's signature	2024-03-03 19:49:45.943862+06	4	5
 58	11	nazmul	Super Admin	Your clearance is rejected. Check whether you have any dues or level-term is uneligble	2024-03-03 19:51:30.31382+06	4	4
 59	2	nazmul	Super Admin	Your clearance is cleared. Collect from superadmin	2024-03-03 19:53:07.608245+06	4	5
+60	4	raju	Lab Assistant	A new requisition has been made	2024-03-04 00:04:43.46537+06	7	\N
+61	5	raju	Lab Assistant	A new requisition has been made	2024-03-04 00:04:43.493339+06	7	\N
+62	7	abul	Inventory Manager	Your requisition has been approved	2024-03-04 00:44:52.240388+06	7	3
+63	7	abul	Inventory Manager	Your requisition has been approved	2024-03-04 00:46:08.623044+06	7	3
+64	4	raju	Lab Assistant	A new requisition has been made	2024-03-04 00:57:53.748709+06	7	\N
+65	5	raju	Lab Assistant	A new requisition has been made	2024-03-04 00:57:53.751552+06	7	\N
+66	7	abul	Inventory Manager	Your requisition has been rejected	2024-03-04 00:58:24.740279+06	7	4
+67	7	abul	Inventory Manager	Your requisition has been partially fulfilled and a new requisition has been made	2024-03-04 02:03:27.934587+06	7	3
+68	7	abul	Inventory Manager	Your requisition has been approved	2024-03-04 02:04:54.699295+06	7	5
+69	7	abul	Inventory Manager	Your requisition has been fulfilled	2024-03-04 02:05:09.44731+06	7	5
+70	4	raju	Lab Assistant	A new requisition has been made	2024-03-04 02:10:52.939805+06	7	\N
+71	5	raju	Lab Assistant	A new requisition has been made	2024-03-04 02:10:52.943771+06	7	\N
+72	7	abul	Inventory Manager	Your requisition has been partially fulfilled and a new requisition has been made	2024-03-04 02:13:04.079594+06	7	6
 \.
 
 
@@ -1048,6 +1158,31 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 
 
 --
+-- Data for Name: requisition_statuses; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.requisition_statuses (req_status, status_name) FROM stdin;
+5	Pending
+6	Collect from Inventory
+7	Rejected
+8	Fulfilled
+\.
+
+
+--
+-- Data for Name: requisitions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.requisitions (requisition_id, user_id, equipment_name, quantity, req_status, req_date, approve_date, verdict_date, location_id, verdictor) FROM stdin;
+4	7	Lenovo Yoga 7i	30	7	2024-03-04	\N	2024-03-04	2	4
+3	7	Servo Motor	20	8	2024-03-04	2024-03-04	2024-03-04	2	4
+5	7	Servo Motor	10	8	2024-03-04	2024-03-04	2024-03-04	2	4
+6	7	Atmega Burner	10	8	2024-03-04	\N	2024-03-04	2	4
+7	7	Atmega Burner	20	5	2024-03-04	\N	\N	2	\N
+\.
+
+
+--
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1105,8 +1240,6 @@ COPY public.users_in_locations (user_id, location_id, role) FROM stdin;
 --
 
 COPY public.viewed_notification (user_id, viewed_notification_count, total_notification_count) FROM stdin;
-4	0	0
-5	0	0
 9	0	0
 12	0	0
 13	0	0
@@ -1123,11 +1256,13 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 25	0	0
 26	0	0
 8	5	7
-7	1	10
 1	9	10
 14	0	2
 11	24	25
 2	3	3
+4	0	3
+5	0	3
+7	1	17
 \.
 
 
@@ -1163,7 +1298,7 @@ SELECT pg_catalog.setval('public.dues_due_id_seq', 8, true);
 -- Name: equipments_equipment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 7, true);
+SELECT pg_catalog.setval('public.equipments_equipment_id_seq', 9, true);
 
 
 --
@@ -1191,14 +1326,14 @@ SELECT pg_catalog.setval('public.monetary_dues_monetary_due_id_seq', 7, true);
 -- Name: notification_types_notification_type_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 6, true);
+SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 7, true);
 
 
 --
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 59, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 72, true);
 
 
 --
@@ -1220,6 +1355,20 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 --
 
 SELECT pg_catalog.setval('public.requests_req_id_seq', 56, true);
+
+
+--
+-- Name: requisition_statuses_req_status_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.requisition_statuses_req_status_seq', 8, true);
+
+
+--
+-- Name: requisitions_requisition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.requisitions_requisition_id_seq', 7, true);
 
 
 --
@@ -1339,6 +1488,22 @@ ALTER TABLE ONLY public.request_status
 
 ALTER TABLE ONLY public.requests
     ADD CONSTRAINT requests_pkey PRIMARY KEY (req_id);
+
+
+--
+-- Name: requisition_statuses requisition_statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requisition_statuses
+    ADD CONSTRAINT requisition_statuses_pkey PRIMARY KEY (req_status);
+
+
+--
+-- Name: requisitions requisitions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requisitions
+    ADD CONSTRAINT requisitions_pkey PRIMARY KEY (requisition_id);
 
 
 --
@@ -1538,6 +1703,22 @@ ALTER TABLE ONLY public.requests
 
 ALTER TABLE ONLY public.requests
     ADD CONSTRAINT requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: requisitions requisitions_req_status_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requisitions
+    ADD CONSTRAINT requisitions_req_status_fkey FOREIGN KEY (req_status) REFERENCES public.requisition_statuses(req_status);
+
+
+--
+-- Name: requisitions requisitions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.requisitions
+    ADD CONSTRAINT requisitions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
 
 
 --
