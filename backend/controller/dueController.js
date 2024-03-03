@@ -244,6 +244,8 @@ const reportLostorDamaged = async (req, res) => {
       "UPDATE dues SET due_status=$1, damage_quantity=$2 where due_id=$3 RETURNING *",
       [duestatus.rows[0].due_status, due.rows[0].damage_quantity + quant, dueID]
     );
+    const equipment=await pool.query("UPDATE equipments SET borrowed=borrowed-$1 WHERE equipment_id=$2 RETURNING *",[quant,requ.rows[0].equipment_id]);
+    const equipm_in_locations = await pool.query("UPDATE equipments_in_locations SET borrowed=borrowed-$1 WHERE equipment_id=$2 AND location_id=$3 RETURNING *",[quant,requ.rows[0].equipment_id,requ.rows[0].location_id]);
     res.status(200).json(clear.rows[0]);
   } catch (err) {
     res.status(400).json({ error: err.message });
