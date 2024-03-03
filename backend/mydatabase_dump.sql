@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.1
--- Dumped by pg_dump version 16.1
+-- Dumped from database version 16.2 (Ubuntu 16.2-1.pgdg22.04+1)
+-- Dumped by pg_dump version 16.2 (Ubuntu 16.2-1.pgdg22.04+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -211,7 +211,8 @@ CREATE TABLE public.dues (
     issue_date date,
     clear_date date,
     quantity integer,
-    damage_quantity integer
+    damage_quantity integer,
+    monetary_assigned integer
 );
 
 
@@ -359,7 +360,8 @@ CREATE TABLE public.monetary_dues (
     due_status integer,
     due_date date,
     issue_date date,
-    clear_date date
+    clear_date date,
+    damage_quantity integer
 );
 
 
@@ -787,10 +789,14 @@ COPY public.due_statuses (due_status, status_name) FROM stdin;
 -- Data for Name: dues; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date, issue_date, clear_date, quantity, damage_quantity) FROM stdin;
-2	34	7	\N	1	2024-02-21	2024-02-19	\N	2	0
-3	41	7	7	2	2024-02-29	2024-02-21	2024-02-25	7	0
-4	38	7	\N	3	2024-03-01	2024-02-21	\N	2	2
+COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date, issue_date, clear_date, quantity, damage_quantity, monetary_assigned) FROM stdin;
+3	41	7	7	2	2024-02-29	2024-02-21	2024-02-25	7	0	0
+2	34	7	\N	3	2024-02-21	2024-02-19	\N	2	1	0
+4	38	7	\N	3	2024-03-01	2024-02-21	\N	2	3	0
+5	43	7	\N	3	2024-03-30	2024-03-03	\N	3	0	0
+6	54	7	\N	3	2024-03-28	2024-03-03	\N	5	3	0
+7	55	7	\N	3	2024-03-26	2024-03-03	\N	5	2	1
+8	56	7	\N	3	2024-03-19	2024-03-03	\N	4	2	1
 \.
 
 
@@ -799,11 +805,11 @@ COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date,
 --
 
 COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borrowed, available, demand, permit, image_link) FROM stdin;
-5	LED	Hardware	5	Light	9	441	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
-1	Breadboard	Hardware	90	Circuit building equipment	12	140	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 6	Iphone	Software	50000	iphone	8	72	1	3	https://www.91-img.com/gallery_images_uploads/3/d/3df5ca6a9b470f715b085991144a5b76e70da975.JPG?tr=h-550,w-0,c-at_max
 2	Arduino	Hardware	100	Microcontroller	12	138	2	2	https://t4.ftcdn.net/jpg/03/33/90/55/240_F_333905577_NJ7hf7ekOjzPDA5yGDAAvlLyJdEwgFyt.jpg
-4	AtMega32	Hardware	500	Microcontroller device	7	103	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
+5	LED	Hardware	5	Light	14	436	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
+1	Breadboard	Hardware	90	Circuit building equipment	17	135	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
+4	AtMega32	Hardware	500	Microcontroller device	11	99	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
 \.
 
 
@@ -816,12 +822,12 @@ COPY public.equipments_in_locations (equipment_id, location_id, available, borro
 1	1	52	0
 5	1	345	0
 4	1	60	0
-5	2	96	9
-1	2	88	12
 6	1	35	0
 6	2	37	8
 2	2	38	12
-4	2	43	7
+5	2	91	14
+1	2	83	17
+4	2	39	11
 \.
 
 
@@ -850,8 +856,10 @@ COPY public.locations (location_id, location_name, room_no, location_type) FROM 
 -- Data for Name: monetary_dues; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.monetary_dues (monetary_due_id, req_id, user_id, creater_id, receiver_id, amount, due_status, due_date, issue_date, clear_date) FROM stdin;
-1	38	11	7	7	100	2	2024-03-07	2024-03-02	2024-03-03
+COPY public.monetary_dues (monetary_due_id, req_id, user_id, creater_id, receiver_id, amount, due_status, due_date, issue_date, clear_date, damage_quantity) FROM stdin;
+1	38	11	7	7	100	2	2024-03-07	2024-03-02	2024-03-03	\N
+6	55	11	7	7	120	2	2024-03-18	2024-03-03	2024-03-03	2
+7	56	1	7	7	800	2	2024-03-19	2024-03-03	2024-03-03	2
 \.
 
 
@@ -900,6 +908,32 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 24	14	1905103	Student	A clearance request has been sent	2024-02-27 12:59:20.583966+06	4	\N
 25	11	raju	Lab Assistant	A monetary due has been created	2024-03-02 22:27:46.265352+06	6	1
 26	11	raju	Lab Assistant	A monetary due has been cleared	2024-03-03 01:02:05.517299+06	6	1
+27	7	1905091	Student	harai gelsi	2024-03-03 10:29:09.899026+06	1	2
+28	1	raju	Lab Assistant	A monetary due has been created	2024-03-03 10:52:53.164308+06	6	2
+29	7	1905103	Student	nothing to comment	2024-03-03 11:16:18.333054+06	1	4
+30	11	raju	Lab Assistant	dont break it like u did previously	2024-03-03 11:21:25.799224+06	2	54
+31	11	raju	Lab Assistant	A due has been updated	2024-03-03 11:25:09.932455+06	1	5
+32	11	raju	Lab Assistant	A due has been updated	2024-03-03 11:26:00.682078+06	1	6
+33	7	1905103	Student	nooo	2024-03-03 11:26:28.115591+06	1	6
+34	11	raju	Lab Assistant	A monetary due has been created	2024-03-03 11:28:54.406599+06	6	3
+35	7	1905103	Student	1	2024-03-03 11:36:33.504383+06	1	5
+36	11	raju	Lab Assistant	A monetary due has been created	2024-03-03 11:37:33.834712+06	6	4
+37	11	raju	Lab Assistant	NIye ja	2024-03-03 11:45:34.944627+06	2	55
+38	11	raju	Lab Assistant	A due has been updated	2024-03-03 11:45:55.948911+06	1	6
+39	11	raju	Lab Assistant	A due has been updated	2024-03-03 11:46:38.641593+06	1	7
+40	7	1905103	Student	Haraisi	2024-03-03 11:47:13.801608+06	1	7
+41	11	raju	Lab Assistant	A monetary due has been created	2024-03-03 11:47:45.656895+06	6	5
+42	11	raju	Lab Assistant	A monetary due has been created	2024-03-03 12:06:40.777881+06	6	6
+43	11	raju	Lab Assistant	A monetary due has been cleared	2024-03-03 12:20:37.738261+06	6	6
+44	11	raju	Lab Assistant	A monetary due has been cleared	2024-03-03 12:23:06.134821+06	6	6
+45	8	raju	Lab Assistant	You have been forwarded a request.	2024-03-03 12:26:09.80698+06	2	56
+46	1	raju	Lab Assistant	Your request has been assigned to a supervisor.	2024-03-03 12:26:09.809096+06	2	56
+47	1	tareqmahmood	Teacher		2024-03-03 12:27:09.966432+06	2	56
+48	\N	tareqmahmood	Teacher	Your request has been accepted.	2024-03-03 12:27:09.971612+06	2	56
+49	1	raju	Lab Assistant	A due has been updated	2024-03-03 12:28:22.431567+06	1	8
+50	7	1905091	Student	haraisi	2024-03-03 12:28:55.128572+06	1	8
+51	1	raju	Lab Assistant	A monetary due has been created	2024-03-03 12:29:52.021227+06	6	7
+52	1	raju	Lab Assistant	A monetary due has been cleared	2024-03-03 12:30:16.154204+06	6	7
 \.
 
 
@@ -919,6 +953,9 @@ COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, com
 11	45	7	Your request has accepted. Collect it from the lab	2024-02-21
 12	46	7	Your request has accepted. Collect it from the lab	2024-02-21
 13	47	7	Collect it from lab 1	2024-02-21
+14	54	7	dont break it like u did previously	2024-03-03
+15	55	7	NIye ja	2024-03-03
+16	56	8		2024-03-03
 \.
 
 
@@ -956,6 +993,7 @@ COPY public.request_supervisors (req_id, supervisor_id) FROM stdin;
 51	8
 50	8
 53	8
+56	8
 \.
 
 
@@ -993,6 +1031,9 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 52	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
 51	11	2	6	1	2024-02-21	5	\N	7	8	\N	\N	\N
 53	11	2	2	2	2024-02-22	4	\N	7	\N	\N	\N	\N
+54	11	2	5	5	2024-03-03	2	7	7	\N	\N	\N	\N
+55	11	2	1	5	2024-03-03	2	7	7	\N	\N	\N	\N
+56	1	2	4	4	2024-03-03	2	8	7	8	\N	\N	\N
 \.
 
 
@@ -1065,10 +1106,7 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 17	0	0
 18	0	0
 19	0	0
-8	5	6
-7	1	4
 14	0	1
-1	4	4
 20	0	0
 21	0	0
 22	0	0
@@ -1076,7 +1114,10 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 24	0	0
 25	0	0
 26	0	0
-11	8	10
+11	18	22
+8	5	7
+7	1	10
+1	9	10
 \.
 
 
@@ -1105,7 +1146,7 @@ SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 3, true);
 -- Name: dues_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.dues_due_id_seq', 4, true);
+SELECT pg_catalog.setval('public.dues_due_id_seq', 8, true);
 
 
 --
@@ -1133,7 +1174,7 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 -- Name: monetary_dues_monetary_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.monetary_dues_monetary_due_id_seq', 1, true);
+SELECT pg_catalog.setval('public.monetary_dues_monetary_due_id_seq', 7, true);
 
 
 --
@@ -1147,14 +1188,14 @@ SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 6, t
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 26, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 52, true);
 
 
 --
 -- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 13, true);
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 16, true);
 
 
 --
@@ -1168,7 +1209,7 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 53, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 56, true);
 
 
 --
