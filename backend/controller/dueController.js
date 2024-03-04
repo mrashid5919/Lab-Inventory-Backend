@@ -227,7 +227,7 @@ const reportLostorDamaged = async (req, res) => {
       "SELECT * from due_statuses where status_name='LostOrDamaged'"
     );
     const notif_type = await pool.query(
-      "SELECT * from notification_types where type_name='Dues'"
+      "SELECT * from notification_types where type_name='LostOrDamaged'"
     );
     const notification = await pool.query(
       "INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",
@@ -621,6 +621,73 @@ const finalCallforClearance = async (req, res) => {
   }
 };
 
+const dueDateAlert = async (req,res) => {
+  //console.log("here");
+  const username=req.params.username;
+  try {
+    let dues = await pool.query(
+      `SELECT d.due_id,r.user_id,d.due_date,d.issue_date,ds.status_name,e.equipment_name,u1.username,d.quantity,d.clear_date,d.damage_quantity from dues d
+      join requests r on d.req_id=r.req_id
+      join equipments e on r.equipment_id=e.equipment_id
+      join users_in_locations ul on r.location_id=ul.location_id
+      join due_statuses ds on d.due_status=ds.due_status
+      join users u1 on r.user_id=u1.user_id
+      join users u on ul.user_id=u.user_id
+      where u.username=$1 and ds.status_name!='Cleared'
+      and ((EXTRACT(DAY FROM age(NOW(), d.due_date)) >0 and EXTRACT(DAY FROM age(NOW(), d.due_date))%7=0)
+      or d.due_date::date = (NOW() + INTERVAL '3 days')::date);`,
+      [username]
+    );
+    let monetary_dues=await pool.query(
+      `SELECT m.monetary_due_id,r.user_id,m.due_date,m.issue_date,ds.status_name,e.equipment_name,u1.username,m.amount,m.clear_date,m.damage_quantity from monetary_dues m
+      join requests r on m.req_id=r.req_id
+      join equipments e on r.equipment_id=e.equipment_id
+      join users_in_locations ul on r.location_id=ul.location_id
+      join due_statuses ds on m.due_status=ds.due_status
+      join users u1 on r.user_id=u1.user_id      
+      join users u on ul.user_id=u.user_id
+      where u.username=$1 and ds.status_name!='Cleared'
+      and ((EXTRACT(DAY FROM age(NOW(), m.due_date)) >0 and EXTRACT(DAY FROM age(NOW(), m.due_date))%7=0)
+      or m.due_date::date = (NOW() + INTERVAL '3 days')::date);`,
+      [username]
+    );
+    const notif_type_1=await pool.query("SELECT * from notification_types where type_name='Dues'");
+    const notif_type_2=await pool.query("SELECT * from notification_types where type_name='MonetaryDues'");
+    //console.log("here");
+    for (let i=0;i<dues.rows.length;i++){
+      const notification = await pool.query(
+        "INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",
+        [
+          dues.rows[i].user_id,
+          username,
+          "Lab Assistant",
+          "This due needs to be cleared asap",
+          notif_type_1.rows[0].notification_type,
+          dues.rows[i].due_id,
+        ]
+      );
+    }
+    for (let i=0;i<monetary_dues.rows.length;i++){
+      const notification = await pool.query(
+        "INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",
+        [
+          monetary_dues.rows[i].user_id,
+          username,
+          "Lab Assistant",
+          "This monetary due needs to be cleared asap",
+          notif_type_2.rows[0].notification_type,
+          monetary_dues.rows[i].monetary_due_id,
+        ]
+      );
+    }
+    dues=dues.rows;
+    monetary_dues=monetary_dues.rows;
+    res.status(200).json({dues,monetary_dues});
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 module.exports = {
   createDue,
   viewDuesStudent,
@@ -639,5 +706,6 @@ module.exports = {
   MonetaryDuesLocation,
   acceptClearance,
   rejectClearance,
-  finalCallforClearance
+  finalCallforClearance,
+  dueDateAlert
 };

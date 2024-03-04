@@ -17,6 +17,51 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: check_available_trigger(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.check_available_trigger() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+    lab_assistant_id INT;
+    inventory_manager_id INT;
+    notification_text TEXT;
+BEGIN
+    IF NEW.available < 50 AND OLD.available >= 50 THEN
+        -- Retrieve the lab assistant ID assigned to the location
+        IF NEW.location_id = 1 THEN
+            SELECT inventory_manager_id INTO inventory_manager_id
+            FROM locations
+            WHERE id = NEW.location_id;
+            INSERT INTO notifications(receiver_id,notification,notification_time,notification_type,type_id) VALUES (inventory_manager_id,'Equipment availability is low. Take necessary action.',now(),3,NEW.equipment_id);
+        ELSE
+            SELECT lab_assistant_id INTO lab_assistant_id
+            FROM locations
+            WHERE id = NEW.location_id;
+            INSERT INTO notifications(receiver_id,notification,notification_time,notification_type,type_id) VALUES (lab_assistant_id,'Equipment availability is low. Take necessary action.',now(),3,NEW.equipment_id);
+        END IF;
+
+        
+
+        -- Insert a new notification for the lab assistant
+        --INSERT INTO notifications (recipient_id, message)
+        --VALUES (lab_assistant_id, notification_text);
+
+        -- You may also perform additional actions as needed
+
+        -- Raise an exception if desired
+        --RAISE EXCEPTION 'Equipment availability is below 50. Take necessary action.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.check_available_trigger() OWNER TO postgres;
+
+--
 -- Name: update_notification_count(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -891,6 +936,7 @@ COPY public.dues (due_id, req_id, alloter_id, receiver_id, due_status, due_date,
 6	54	7	\N	3	2024-03-28	2024-03-03	\N	5	3	0
 7	55	7	\N	3	2024-03-26	2024-03-03	\N	5	2	1
 8	56	7	\N	3	2024-03-19	2024-03-03	\N	4	2	1
+9	57	7	\N	3	2024-03-19	2024-03-04	\N	2	1	1
 \.
 
 
@@ -904,8 +950,8 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 5	LED	Hardware	5	Light	14	436	1	1	https://www.robotechbd.com/wp-content/uploads/2021/07/frosted-leds-red-green-blue-yellow-white-800x800-1.jpg
 1	Breadboard	Hardware	90	Circuit building equipment	17	135	3	1	https://cdn.sparkfun.com/assets/learn_tutorials/4/7/12615-02_Full_Size_Breadboard_Split_Power_Rails.jpg
 4	AtMega32	Hardware	500	Microcontroller device	11	99	1	2	https://upload.wikimedia.org/wikipedia/commons/f/f0/ATmega32_microcontroller.jpg?20090626195729
-8	Servo Motor	Hardware	200	A motor that can rotate 360 degrees.	0	70	1	1	https://www.electronicwings.com/storage/PlatformSection/TopicContent/134/icon/Servo%20Motor.jpg
 9	Atmega Burner	Hardware	150	Burner used to burn code to Atmega	0	50	1	1	https://rudius.net/oz2m/ngnb/usbasp_programmer.jpg
+8	Servo Motor	Hardware	200	A motor that can rotate 360 degrees.	1	68	1	1	https://www.electronicwings.com/storage/PlatformSection/TopicContent/134/icon/Servo%20Motor.jpg
 \.
 
 
@@ -916,18 +962,18 @@ COPY public.equipments (equipment_id, equipment_name, type, cost, descript, borr
 COPY public.equipments_in_locations (equipment_id, location_id, available, borrowed) FROM stdin;
 2	1	100	0
 1	1	52	0
-5	1	345	0
 4	1	60	0
 6	1	35	0
 6	2	37	8
 2	2	38	12
-5	2	91	14
-1	2	83	17
 4	2	39	11
 8	1	40	0
-8	2	30	0
 9	1	40	0
 9	2	10	0
+8	2	28	1
+1	2	79	17
+5	1	335	0
+5	2	101	14
 \.
 
 
@@ -960,6 +1006,7 @@ COPY public.monetary_dues (monetary_due_id, req_id, user_id, creater_id, receive
 1	38	11	7	7	100	2	2024-03-07	2024-03-02	2024-03-03	\N
 6	55	11	7	7	120	2	2024-03-18	2024-03-03	2024-03-03	2
 7	56	1	7	7	800	2	2024-03-19	2024-03-03	2024-03-03	2
+8	57	11	7	\N	80	1	2024-03-07	2024-03-04	\N	1
 \.
 
 
@@ -1054,6 +1101,11 @@ COPY public.notifications (notification_id, receiver_id, sender_name, sender_rol
 70	4	raju	Lab Assistant	A new requisition has been made	2024-03-04 02:10:52.939805+06	7	\N
 71	5	raju	Lab Assistant	A new requisition has been made	2024-03-04 02:10:52.943771+06	7	\N
 72	7	abul	Inventory Manager	Your requisition has been partially fulfilled and a new requisition has been made	2024-03-04 02:13:04.079594+06	7	6
+73	11	raju	Lab Assistant	Take from lab	2024-03-04 03:32:33.592728+06	2	57
+74	11	raju	Lab Assistant	A due has been updated	2024-03-04 03:33:04.017601+06	1	9
+75	7	1905103	Student	Damaged	2024-03-04 03:33:48.788396+06	1	9
+76	11	raju	Lab Assistant	A monetary due has been created	2024-03-04 13:03:26.469839+06	6	8
+77	11	raju	Lab Assistant	This monetary due needs to be cleared asap	2024-03-04 13:23:51.509659+06	6	8
 \.
 
 
@@ -1076,6 +1128,7 @@ COPY public.request_comments (req_comment_id, req_id, commenter_id, comment, com
 14	54	7	dont break it like u did previously	2024-03-03
 15	55	7	NIye ja	2024-03-03
 16	56	8		2024-03-03
+17	57	7	Take from lab	2024-03-04
 \.
 
 
@@ -1154,6 +1207,10 @@ COPY public.requests (req_id, user_id, location_id, equipment_id, quantity, req_
 54	11	2	5	5	2024-03-03	2	7	7	\N	\N	\N	\N
 55	11	2	1	5	2024-03-03	2	7	7	\N	\N	\N	\N
 56	1	2	4	4	2024-03-03	2	8	7	8	\N	\N	\N
+57	11	2	8	2	2024-03-04	2	7	7	\N	\N	\N	\N
+58	7	1	1	4	2024-03-04	2	4	\N	\N	4	\N	\N
+59	7	1	1	5	2024-03-04	2	4	\N	\N	4	\N	\N
+60	7	1	5	10	2024-03-04	2	4	\N	\N	4	\N	\N
 \.
 
 
@@ -1258,11 +1315,11 @@ COPY public.viewed_notification (user_id, viewed_notification_count, total_notif
 8	5	7
 1	9	10
 14	0	2
-11	24	25
 2	3	3
-4	0	3
 5	0	3
-7	1	17
+7	1	18
+11	29	29
+4	3	3
 \.
 
 
@@ -1291,7 +1348,7 @@ SELECT pg_catalog.setval('public.due_statuses_due_status_seq', 3, true);
 -- Name: dues_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.dues_due_id_seq', 8, true);
+SELECT pg_catalog.setval('public.dues_due_id_seq', 9, true);
 
 
 --
@@ -1319,7 +1376,7 @@ SELECT pg_catalog.setval('public.locations_location_id_seq', 3, true);
 -- Name: monetary_dues_monetary_due_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.monetary_dues_monetary_due_id_seq', 7, true);
+SELECT pg_catalog.setval('public.monetary_dues_monetary_due_id_seq', 8, true);
 
 
 --
@@ -1333,14 +1390,14 @@ SELECT pg_catalog.setval('public.notification_types_notification_type_seq', 7, t
 -- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 72, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 77, true);
 
 
 --
 -- Name: request_comments_req_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 16, true);
+SELECT pg_catalog.setval('public.request_comments_req_comment_id_seq', 17, true);
 
 
 --
@@ -1354,7 +1411,7 @@ SELECT pg_catalog.setval('public.request_status_req_status_seq', 6, true);
 -- Name: requests_req_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.requests_req_id_seq', 56, true);
+SELECT pg_catalog.setval('public.requests_req_id_seq', 60, true);
 
 
 --

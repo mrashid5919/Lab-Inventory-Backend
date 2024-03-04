@@ -21,13 +21,15 @@ checkClearanceExistence,
 checkClearanceRequests,
 acceptClearance,
 rejectClearance,
-finalCallforClearance } = require("../controller/dueController");
+finalCallforClearance,
+dueDateAlert } = require("../controller/dueController");
 
 router.post("/createdue/:username/:reqID", createDue);
 router.get("/viewduesstudent/:username", viewDuesStudent);
 router.get("/viewdueslocation/:username", viewDuesLocation);
 router.post("/cleardue/:username/:dueID", clearDue);
 router.get("/checkclearanceeligibility/:username", checkClearanceEligibility);
+router.post("/duedatealert/:username", dueDateAlert);
 router.post("/reportlostordamaged/:username/:dueID", reportLostorDamaged);
 router.get("/viewlostordamaged/:username",viewLostorDamaged);
 router.get("/showestimatedue/:username/:dueID", showEstimateDue);
