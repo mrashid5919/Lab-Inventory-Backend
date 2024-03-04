@@ -227,7 +227,7 @@ const reportLostorDamaged = async (req, res) => {
       "SELECT * from due_statuses where status_name='LostOrDamaged'"
     );
     const notif_type = await pool.query(
-      "SELECT * from notification_types where type_name='LostOrDamaged'"
+      "SELECT * from notification_types where type_name='LostorDamaged'"
     );
     const notification = await pool.query(
       "INSERT INTO notifications(receiver_id,sender_name,sender_role,notification,notification_time,notification_type,type_id) VALUES ($1,$2,$3,$4,now(),$5,$6) RETURNING *",
